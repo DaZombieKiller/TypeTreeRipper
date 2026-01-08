@@ -1,0 +1,18 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cpp,hpp,c,h,inl}]
+indent_style = space
+indent_size = 4
+cpp_indent_case_contents = true
+cpp_indent_case_labels = false
+cpp_indent_case_contents_when_block = true
+cpp_indent_goto_labels = one_left
+cpp_indent_preprocessor = one_left
+cpp_space_pointer_reference_alignment = right
+cpp_indent_lambda_braces_when_parameter = false
