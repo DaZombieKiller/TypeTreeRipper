@@ -1,4 +1,13 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": [ "detours", "wil" ]
+    "dependencies": [
+      {
+        "name": "detours",
+        "platform": "windows"
+      },
+      {
+        "name": "wil",
+        "platform": "windows"
+      }
+    ]
 }

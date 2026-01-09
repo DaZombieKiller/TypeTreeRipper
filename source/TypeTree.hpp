@@ -98,12 +98,12 @@ public:
     {
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
     }
@@ -173,9 +173,9 @@ public:
 
 DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2)
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
     TransferInstructionFlags<R, V> m_FlagsAtGeneration = {};
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> const &m_MemLabel;
@@ -190,12 +190,12 @@ public:
         m_FlagsAtGeneration = options;
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
     }
@@ -235,11 +235,11 @@ public:
 
 DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3)
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<uint8_t> m_Levels;
-    dynamic_array<R, V>::type<int32_t> m_NextIndex;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<uint8_t> m_Levels;
+    dynamic_array<R, V>::template type<int32_t> m_NextIndex;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
     TransferInstructionFlags<R, V> m_FlagsAtGeneration = {};
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> m_MemLabel;
@@ -254,12 +254,12 @@ public:
         m_FlagsAtGeneration = options;
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
     }
