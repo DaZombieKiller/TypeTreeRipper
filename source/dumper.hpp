@@ -32,13 +32,13 @@ class Dumper : public IDumper
     using RuntimeTypeArray = ::RuntimeTypeArray<R, V>;
     using RTTI = ::RTTI<R, V>;
 
-    void DumpNodes(TypeTreeShareableData &data, char const *commonString, std::ofstream &ofs)
+    void DumpNodes(TypeTree &tree, char const *commonString, std::ofstream &ofs)
     {
         int minLevel = INT_MAX;
 
-        for (int n = 0; n < data.Nodes().size(); n++)
+        for (int n = 0; n < tree.Nodes().size(); n++)
         {
-            auto &node = data.Nodes()[n];
+            auto &node = tree.Nodes()[n];
 
             if (node.m_Level < minLevel)
             {
@@ -46,16 +46,16 @@ class Dumper : public IDumper
             }
         }
 
-        for (int n = 0; n < data.Nodes().size(); n++)
+        for (int n = 0; n < tree.Nodes().size(); n++)
         {
-            auto &node = data.Nodes()[n];
+            auto &node = tree.Nodes()[n];
 
             for (int ind = 0; ind < node.m_Level - minLevel; ind++)
                 ofs << '\t';
 
             if ((node.m_TypeStrOffset & 0x80000000) == 0)
             {
-                ofs << data.StringsBuffer().data() + node.m_TypeStrOffset;
+                ofs << tree.StringsBuffer().data() + node.m_TypeStrOffset;
             }
             else
             {
@@ -66,7 +66,7 @@ class Dumper : public IDumper
 
             if ((node.m_NameStrOffset & 0x80000000) == 0)
             {
-                ofs << data.StringsBuffer().data() + node.m_NameStrOffset;
+                ofs << tree.StringsBuffer().data() + node.m_NameStrOffset;
             }
             else
             {
@@ -203,7 +203,7 @@ public:
                 TypeTree tree(&data, label);
                 GenerateTypeTreeTransfer transfer(tree, TransferInstructionFlags::kSerializeGameRelease, object, pRTTI->size);
                 object->VirtualRedirectTransfer(transfer);
-                DumpNodes(data, pTable, ofs);
+                DumpNodes(tree, pTable, ofs);
             }
         }
     }

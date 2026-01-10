@@ -61,6 +61,16 @@ public:
     {
         return nullptr;
     }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return m_Nodes;
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return m_StringBuffer;
+    }
 };
 
 template<Revision R, Variant V>
@@ -129,6 +139,16 @@ public:
     TypeTreeShareableData<R, V> *GetData() const
     {
         return m_Data;
+    }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return GetData()->Nodes();
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return GetData()->StringsBuffer();
     }
 };
 
@@ -226,6 +246,16 @@ public:
     TypeTreeShareableData<R, V> *GetData() const
     {
         return m_Data;
+    }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return GetData()->Nodes();
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return GetData()->StringsBuffer();
     }
 };
 
