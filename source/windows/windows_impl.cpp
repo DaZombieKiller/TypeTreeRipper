@@ -6,16 +6,10 @@
 #include "common.hpp"
 #include "dumper.hpp"
 #include "RTTI.hpp"
+#include <span>
+#include <functional>
+#include <algorithm>
 #undef WIN32_LEAN_AND_MEAN
-
-//
-// The dumper has two primary requirements:
-//  1. It must run on the Unity main thread.
-//  2. The engine needs to be initialized (so that object creation may succeed).
-// To do this, we hook LoadLibrary and wait for Mono to be loaded, then we hook
-// mono_image_open_from_data_with_name to kick off the dumper and return a fail
-// to cause the engine to quit afterwards.
-//
 
 template<Revision R, Variant V>
 class WindowsDumper
@@ -120,9 +114,11 @@ public:
 
     static char const *GetCommonStringBuffer()
     {
+        static constexpr auto kCommonStringBufferPattern = std::span("AABB\0AnimationClip");
+        const auto searcher = std::boyer_moore_horspool_searcher(kCommonStringBufferPattern.cbegin(), kCommonStringBufferPattern.cend());
+
         auto pDosHeader = reinterpret_cast<IMAGE_DOS_HEADER *>(GetUnityModule());
         auto pNtHeaders = reinterpret_cast<IMAGE_NT_HEADERS *>(reinterpret_cast<char *>(pDosHeader) + pDosHeader->e_lfanew);
-        auto searchItem = std::string_view("AABB\0AnimationClip\0", 19);
 
         for (WORD iSection = 0; iSection < pNtHeaders->FileHeader.NumberOfSections; iSection++)
         {
@@ -135,18 +131,26 @@ public:
             if ((pSection->Characteristics & IMAGE_SCN_MEM_DISCARDABLE) != 0)
                 continue;
 
-            for (size_t i = 0; i < pSection->Misc.VirtualSize - searchItem.size(); i++)
+            const auto region = std::span(pContent, pSection->Misc.VirtualSize);
+            if (const auto result = std::search(region.cbegin(), region.cend(), searcher);
+                result != region.end())
             {
-                if (!memcmp(pContent + i, searchItem.data(), searchItem.size()))
-                {
-                    return pContent + i;
-                }
+                return pContent + std::distance(region.cbegin(), result);
             }
         }
 
         return nullptr;
     }
 };
+
+//
+// The dumper has two primary requirements:
+//  1. It must run on the Unity main thread.
+//  2. The engine needs to be initialized (so that object creation may succeed).
+// To do this, we hook LoadLibrary and wait for Mono to be loaded, then we hook
+// mono_image_open_from_data_with_name to kick off the dumper and return a fail
+// to cause the engine to quit afterwards.
+//
 
 namespace
 {
