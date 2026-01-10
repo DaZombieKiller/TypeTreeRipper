@@ -145,5 +145,5 @@ template<Revision R, Variant V>
 struct RuntimeTypeArray
 {
     int32_t Count;
-    RTTI<R, V> *Types[1024];
+    std::array<RTTI<R, V> *, 1024> Types;
 };

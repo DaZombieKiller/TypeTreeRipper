@@ -48,7 +48,7 @@ class WindowsDumper
 
         if constexpr (R >= Revision::V5_2)
         {
-            if (pArray->Count < 2 || pArray->Count > ARRAYSIZE(pArray->Types))
+            if (pArray->Count < 2 || pArray->Count > pArray->Types.size())
                 return false;
 
             for (int i = 0; i < pArray->Count; i++)
