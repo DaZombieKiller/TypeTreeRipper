@@ -33,114 +33,42 @@ class WindowsDumper
         FAIL_FAST_WIN32(ERROR_NOT_FOUND);
     }
 
-    static bool StringEquals(char const *p, const std::string_view other)
-    {
-        if (IsBadReadPtr(p, other.size() + 1))
-            return false;
-
-        return p[other.size()] == '\0' && std::string_view(p, other.size()) == other;
-    }
-
-    static bool IsValidRuntimeTypeArray(RuntimeTypeArray const *pArray)
-    {
-        if (IsBadReadPtr(pArray, sizeof(RuntimeTypeArray)))
-            return false;
-
-        if constexpr (R >= Revision::V5_2)
-        {
-            if (pArray->Count < 2 || pArray->Count > pArray->Types.size())
-                return false;
-
-            for (int i = 0; i < pArray->Count; i++)
-            {
-                if (IsBadReadPtr(pArray->Types[i], sizeof(RTTI)))
-                {
-                    return false;
-                }
-
-                if (pArray->Types[i]->factory && IsBadCodePtr((FARPROC)pArray->Types[i]->factory))
-                {
-                    return false;
-                }
-            }
-
-            if (pArray->Types[0]->persistentTypeID != 0)
-                return false;
-
-            if (pArray->Types[1]->base != pArray->Types[0])
-                return false;
-
-            if (!StringEquals(pArray->Types[0]->className, "Object"))
-                return false;
-
-            return true;
-        }
-
-        return false;
-    }
-
 public:
-    static RuntimeTypeArray const *GetRuntimeTypeArray()
+    std::span<ExecutableSection> GetExecutableSections()
     {
-        auto pDosHeader = reinterpret_cast<IMAGE_DOS_HEADER *>(GetUnityModule());
-        auto pNtHeaders = reinterpret_cast<IMAGE_NT_HEADERS *>(reinterpret_cast<char *>(pDosHeader) + pDosHeader->e_lfanew);
-
-        for (WORD iSection = 0; iSection < pNtHeaders->FileHeader.NumberOfSections; iSection++)
+        if (CachedSections.empty())
         {
-            auto pSection = IMAGE_FIRST_SECTION(pNtHeaders) + iSection;
-            auto pContent = reinterpret_cast<char *>(pDosHeader) + pSection->VirtualAddress;
+            auto pDosHeader = reinterpret_cast<IMAGE_DOS_HEADER *>(GetUnityModule());
+            auto pNtHeaders = reinterpret_cast<IMAGE_NT_HEADERS *>(reinterpret_cast<char *>(pDosHeader) + pDosHeader->e_lfanew);
 
-            // The runtime type array is initialized at runtime, if the section
-            // is not writable then it can not contain the runtime type array.
-            if ((pSection->Characteristics & IMAGE_SCN_MEM_WRITE) == 0)
-                continue;
-
-            if ((pSection->Characteristics & IMAGE_SCN_MEM_READ) == 0)
-                continue;
-
-            for (size_t i = 0; i < pSection->Misc.VirtualSize - sizeof(RuntimeTypeArray); i++)
+            for (WORD iSection = 0; iSection < pNtHeaders->FileHeader.NumberOfSections; iSection++)
             {
-                auto pArray = reinterpret_cast<RuntimeTypeArray const *>(pContent + i);
+                auto pSection = IMAGE_FIRST_SECTION(pNtHeaders) + iSection;
+                auto pContent = reinterpret_cast<char *>(pDosHeader) + pSection->VirtualAddress;
 
-                if (!IsValidRuntimeTypeArray(pArray))
+                // Ignore all discardable sections
+                if ((pSection->Characteristics & IMAGE_SCN_MEM_DISCARDABLE) != 0)
                     continue;
 
-                return pArray;
+                auto protection = 0;
+                if ((pSection->Characteristics & IMAGE_SCN_MEM_READ) != 0)
+                    protection |= ExecutableSection::kSectionProtectionRead;
+
+                if ((pSection->Characteristics & IMAGE_SCN_MEM_WRITE) != 0)
+                    protection |= ExecutableSection::kSectionProtectionWrite;
+
+                if ((pSection->Characteristics & IMAGE_SCN_MEM_EXECUTE) != 0)
+                    protection |= ExecutableSection::kSectionProtectionExecute;
+
+                const auto data = std::span(pContent, pSection->Misc.VirtualSize);
+                CachedSections.emplace_back(data, protection);
             }
         }
 
-        return nullptr;
+        return CachedSections;
     }
-
-    static char const *GetCommonStringBuffer()
-    {
-        static constexpr auto kCommonStringBufferPattern = std::span("AABB\0AnimationClip");
-        const auto searcher = std::boyer_moore_horspool_searcher(kCommonStringBufferPattern.cbegin(), kCommonStringBufferPattern.cend());
-
-        auto pDosHeader = reinterpret_cast<IMAGE_DOS_HEADER *>(GetUnityModule());
-        auto pNtHeaders = reinterpret_cast<IMAGE_NT_HEADERS *>(reinterpret_cast<char *>(pDosHeader) + pDosHeader->e_lfanew);
-
-        for (WORD iSection = 0; iSection < pNtHeaders->FileHeader.NumberOfSections; iSection++)
-        {
-            auto pSection = IMAGE_FIRST_SECTION(pNtHeaders) + iSection;
-            auto pContent = reinterpret_cast<char *>(pDosHeader) + pSection->VirtualAddress;
-
-            if ((pSection->Characteristics & IMAGE_SCN_MEM_READ) == 0)
-                continue;
-
-            if ((pSection->Characteristics & IMAGE_SCN_MEM_DISCARDABLE) != 0)
-                continue;
-
-            const auto region = std::span(pContent, pSection->Misc.VirtualSize);
-            if (const auto result = std::search(region.cbegin(), region.cend(), searcher);
-                result != region.end())
-            {
-                return pContent + std::distance(region.cbegin(), result);
-            }
-        }
-
-        return nullptr;
-    }
+private:
+    std::vector<ExecutableSection> CachedSections;
 };
 
 //

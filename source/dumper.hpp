@@ -3,11 +3,16 @@
 
 #include <array>
 #include <fstream>
+#include <span>
+#include <functional>
+#include <algorithm>
+
 #include "MemLabelId.hpp"
 #include "Object.hpp"
 #include "GenerateTypeTreeTransfer.hpp"
 #include "platform_impl.hpp"
 #include "dumper.hpp"
+#include "executable.hpp"
 
 struct IDumper
 {
@@ -71,13 +76,117 @@ class Dumper : public IDumper
             ofs.put(ofs.widen('\n'));
         }
     }
+
+    bool IsValidPointer(void const *ptr, const size_t size, const uint8_t expectedProtection = ExecutableSection::kSectionProtectionRead)
+    {
+        return std::ranges::any_of(PlatformImpl.GetExecutableSections(), [&](const ExecutableSection &section)
+        {
+            return section.IsValidPointer(ptr, size, expectedProtection);
+        });
+    }
+
+    bool StringEquals(char const *p, const std::string_view other)
+    {
+        if (!IsValidPointer(p, other.size() + 1))
+            return false;
+
+        if (p[other.size()] != '\0')
+            return false;
+
+        return std::string_view(p, other.size()) == other;
+    }
+
+    bool IsValidRuntimeTypeArray(RuntimeTypeArray const *pArray)
+    {
+        if (!IsValidPointer(pArray, sizeof(RuntimeTypeArray)))
+            return false;
+
+        if constexpr (R >= Revision::V5_2)
+        {
+            if (pArray->Count < 2 || pArray->Count > pArray->Types.size())
+                return false;
+
+            for (int i = 0; i < pArray->Count; i++)
+            {
+                if (!IsValidPointer(pArray->Types[i], sizeof(RTTI)))
+                {
+                    return false;
+                }
+
+                if (pArray->Types[i]->factory && !IsValidPointer(pArray->Types[i]->factory, 1))
+                {
+                    return false;
+                }
+            }
+
+            if (pArray->Types[0]->persistentTypeID != 0)
+                return false;
+
+            if (pArray->Types[1]->base != pArray->Types[0])
+                return false;
+
+            if (!StringEquals(pArray->Types[0]->className, "Object"))
+                return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    RuntimeTypeArray const *GetRuntimeTypeArray()
+    {
+        for (const auto &section : PlatformImpl.GetExecutableSections())
+        {
+            // The runtime type array is initialized at runtime, if the section
+            // is not writable then it can not contain the runtime type array.
+            if ((section.Protection & ExecutableSection::kSectionProtectionWrite) == 0)
+                continue;
+
+            if ((section.Protection & ExecutableSection::kSectionProtectionRead) == 0)
+                continue;
+
+            for (size_t i = 0; i < section.Data.size() - sizeof(RuntimeTypeArray); i++)
+            {
+                auto pArray = reinterpret_cast<RuntimeTypeArray const *>(section.Data.data() + i);
+
+                if (!IsValidRuntimeTypeArray(pArray))
+                    continue;
+
+                return pArray;
+            }
+        }
+
+        return nullptr;
+    }
+
+    char const *GetCommonStringBuffer()
+    {
+        static constexpr auto kCommonStringBufferPattern = std::span("AABB\0AnimationClip");
+        const auto searcher = std::boyer_moore_horspool_searcher(kCommonStringBufferPattern.cbegin(), kCommonStringBufferPattern.cend());
+
+        for (const auto &section : PlatformImpl.GetExecutableSections())
+        {
+            if ((section.Protection & ExecutableSection::kSectionProtectionRead) == 0)
+                continue;
+
+            const auto region = section.Data;
+            if (const auto result = std::search(region.cbegin(), region.cend(), searcher);
+                result != region.end())
+            {
+                return region.data() + std::distance(region.cbegin(), result);
+            }
+        }
+
+        return nullptr;
+    }
 public:
     void Run() override
     {
         if constexpr (R >= Revision::V5_2)
         {
-            auto pArray = PlatformImpl.GetRuntimeTypeArray();
-            auto pTable = PlatformImpl.GetCommonStringBuffer();
+            auto pArray = GetRuntimeTypeArray();
+            auto pTable = GetCommonStringBuffer();
             std::ofstream ofs("types.txt");
 
             for (int i = 0; i < pArray->Count; i++)
