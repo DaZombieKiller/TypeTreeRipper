@@ -19,7 +19,7 @@ struct ExecutableSection
         if ((Protection & expectedProtection) != expectedProtection)
             return false;
 
-        const auto offset = std::distance(reinterpret_cast<uintptr_t>(Data.data()), reinterpret_cast<uintptr_t>(ptr));
+        const auto offset = std::distance(static_cast<char const *>(Data.data()), static_cast<char const*>(ptr));
         if (offset < 0)
             return false;
 

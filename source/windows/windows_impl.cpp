@@ -6,17 +6,12 @@
 #include "common.hpp"
 #include "dumper.hpp"
 #include "RTTI.hpp"
-#include <span>
-#include <functional>
-#include <algorithm>
+#include <filesystem>
 #undef WIN32_LEAN_AND_MEAN
 
 template<Revision R, Variant V>
 class WindowsDumper
 {
-    using RuntimeTypeArray = ::RuntimeTypeArray<R, V>;
-    using RTTI = ::RTTI<R, V>;
-
     static HMODULE GetUnityModule()
     {
         for (const auto &module : {
@@ -66,6 +61,13 @@ public:
         }
 
         return CachedSections;
+    }
+
+    static std::ofstream CreateOutputFile(char const *filename)
+    {
+        // Create the output file in the current directory.
+        // NOTE: Should this be made configurable? i.e. through an environment variable?
+        return std::ofstream(std::filesystem::current_path() / filename);
     }
 private:
     std::vector<ExecutableSection> CachedSections;

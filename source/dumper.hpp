@@ -187,7 +187,8 @@ public:
         {
             auto pArray = GetRuntimeTypeArray();
             auto pTable = GetCommonStringBuffer();
-            std::ofstream ofs("types.txt");
+
+            auto ofs = PlatformImpl.CreateOutputFile("types.txt");
 
             for (int i = 0; i < pArray->Count; i++)
             {
