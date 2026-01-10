@@ -18,7 +18,7 @@
       },
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}"
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}"
       }
     },
     {
@@ -60,13 +60,9 @@
     {
       "name": "RelWithDebInfoAndroid",
       "displayName": "RelWithDebInfo (Android)",
-      "inherits": "RelWithDebInfo",
+      "inherits": "DebugAndroid",
       "cacheVariables": {
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake",
-        "VCPKG_TARGET_TRIPLET": "arm64-android",
-        "ANDROID_ABI": "arm64-v8a",
-        "ANDROID_PLATFORM": "latest",
-        "CMAKE_CXX_COMPILER_WORKS": true
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
