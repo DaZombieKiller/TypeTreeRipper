@@ -49,9 +49,9 @@ struct TypeTreeNode
 template<Revision R, Variant V>
 class TypeTree
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
 public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label)
     {
@@ -83,9 +83,9 @@ public:
 template<Revision R, Variant V>
 class TypeTreeShareableData
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
     std::atomic<int> m_RefCount;
     MemLabelId<R, V> const &m_MemLabel;
 public:

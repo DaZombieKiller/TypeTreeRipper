@@ -163,7 +163,7 @@ class Dumper : public IDumper
     char const *GetCommonStringBuffer()
     {
         static constexpr auto kCommonStringBufferPattern = std::span("AABB\0AnimationClip");
-        const auto searcher = std::boyer_moore_horspool_searcher(kCommonStringBufferPattern.cbegin(), kCommonStringBufferPattern.cend());
+        const auto searcher = std::boyer_moore_horspool_searcher(std::cbegin(kCommonStringBufferPattern), std::cend(kCommonStringBufferPattern));
 
         for (const auto &section : PlatformImpl.GetExecutableSections())
         {
@@ -171,10 +171,10 @@ class Dumper : public IDumper
                 continue;
 
             const auto region = section.Data;
-            if (const auto result = std::search(region.cbegin(), region.cend(), searcher);
-                result != region.end())
+            if (const auto result = std::search(std::cbegin(region), std::cend(region), searcher);
+                result != std::cend(region))
             {
-                return region.data() + std::distance(region.cbegin(), result);
+                return region.data() + std::distance(std::cbegin(region), result);
             }
         }
 

@@ -4,7 +4,7 @@
 #include "RTTI.hpp"
 #include "GenerateTypeTreeTransfer.hpp"
 
-enum ObjectCreationMode
+enum ObjectCreationMode : int
 {
     kCreateObjectDefault,
     kCreateObjectFromNonMainThread,
@@ -23,6 +23,8 @@ DECLARE_REVISION(Object, Revision::V2021_1);
 // 3.0 (default)
 //
 
+enum AwakeFromLoadMode : int;
+
 template<Revision R, Variant V>
 class Object
 {
@@ -32,7 +34,7 @@ public:
     template<bool kSwap> class StreamedBinaryRead;
     virtual ~Object() = 0;
     virtual void MainThreadCleanup() = 0;
-    virtual void AwakeFromLoad(enum AwakeFromLoadMode) = 0;
+    virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
     virtual void Reset() = 0;
@@ -66,7 +68,7 @@ public:
     template<bool kSwap> class StreamedBinaryRead;
     virtual ~Object() = 0;
     virtual void MainThreadCleanup() = 0;
-    virtual void AwakeFromLoad(enum AwakeFromLoadMode) = 0;
+    virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
     virtual void Reset() = 0;
@@ -92,6 +94,8 @@ public:
 // 2017.1
 //
 
+enum HideFlags : int;
+
 DEFINE_REVISION(class, Object, Revision::V2017_1)
 {
     using RTTI = ::RTTI<R, V>;
@@ -101,7 +105,7 @@ public:
     template<bool kSwap> class StreamedBinaryRead;
     virtual ~Object() = 0;
     virtual void MainThreadCleanup() = 0;
-    virtual void AwakeFromLoad(enum AwakeFromLoadMode) = 0;
+    virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
     virtual void Reset() = 0;
@@ -111,7 +115,7 @@ public:
     virtual char const *GetName() const = 0;
     virtual void SetName(char const *) = 0;
     virtual bool ShouldIgnoreInGarbageDependencyTracking() = 0;
-    virtual void SetHideFlags(enum HideFlags) = 0;
+    virtual void SetHideFlags(HideFlags) = 0;
     virtual size_t GetRuntimeMemorySize() const = 0;
     virtual void SetCachedScriptingObject(class ScriptingObjectPtr) = 0;
     virtual bool GetNeedsPerObjectTypeTree() const = 0;
@@ -135,7 +139,7 @@ DEFINE_REVISION(class, Object, Revision::V2018_2)
 public:
     virtual ~Object() = 0;
     virtual void MainThreadCleanup() = 0;
-    virtual void AwakeFromLoad(enum AwakeFromLoadMode) = 0;
+    virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
     virtual void Reset() = 0;
@@ -145,7 +149,7 @@ public:
     virtual char const *GetName() const = 0;
     virtual void SetName(char const *) = 0;
     virtual bool ShouldIgnoreInGarbageDependencyTracking() = 0;
-    virtual void SetHideFlags(enum HideFlags) = 0;
+    virtual void SetHideFlags(HideFlags) = 0;
     virtual size_t GetRuntimeMemorySize() const = 0;
     virtual void SetCachedScriptingObject(class ScriptingObjectPtr) = 0;
     virtual bool GetNeedsPerObjectTypeTree() const = 0;
@@ -167,7 +171,7 @@ DEFINE_REVISION(class, Object, Revision::V2021_1)
 public:
     virtual ~Object() = 0;
     virtual void MainThreadCleanup() = 0;
-    virtual void AwakeFromLoad(enum AwakeFromLoadMode) = 0;
+    virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
     virtual void Reset() = 0;
@@ -176,7 +180,7 @@ public:
     virtual RTTI const *GetTypeVirtualInternal() = 0;
     virtual char const *GetName() const = 0;
     virtual void SetName(char const *) = 0;
-    virtual void SetHideFlags(enum HideFlags) = 0;
+    virtual void SetHideFlags(HideFlags) = 0;
     virtual size_t GetRuntimeMemorySize() const = 0;
     virtual void SetCachedScriptingObject(class ScriptingObjectPtr) = 0;
     virtual bool GetNeedsPerObjectTypeTree() const = 0;

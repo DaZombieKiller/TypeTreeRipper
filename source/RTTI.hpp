@@ -19,12 +19,13 @@ DECLARE_REVISION(RTTI, Revision::V2017_3);
 //
 // 3.x & 4.x
 //
+enum ObjectCreationMode : int;
 
 template<Revision R, Variant V>
 struct RTTI
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     int32_t persistentTypeID;
     std::string className;
     int32_t size;
@@ -38,7 +39,7 @@ struct RTTI
 DEFINE_REVISION(struct, RTTI, Revision::V5_0)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     int32_t persistentTypeID;
     std::string className;
     int32_t size;
@@ -53,7 +54,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_0)
 DEFINE_REVISION(struct, RTTI, Revision::V5_1)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     int32_t persistentTypeID;
     std::string className;
     int32_t size;
@@ -69,7 +70,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_1)
 DEFINE_REVISION(struct, RTTI, Revision::V5_2)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     int32_t persistentTypeID;
     char const *className;
     int32_t size;
@@ -91,7 +92,7 @@ struct DerivedFromInfo
 DEFINE_REVISION(struct, RTTI, Revision::V5_4)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     int32_t persistentTypeID;
     char const *className;
     int32_t size;
@@ -108,7 +109,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_4)
 DEFINE_REVISION(struct, RTTI, Revision::V5_5)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     char const *className;
     char const *classNamespace;
     int32_t persistentTypeID;
@@ -126,7 +127,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_5)
 DEFINE_REVISION(struct, RTTI, Revision::V2017_3)
 {
     RTTI *base;
-    Object<R, V> *(*factory)(MemLabelId<R, V>, enum ObjectCreationMode);
+    Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
     char const *className;
     char const *classNamespace;
     char const *module;
