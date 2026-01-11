@@ -98,7 +98,7 @@ private:
 
 namespace
 {
-    Revision DetectedRevision = Revision::V0;
+    Revision DetectedRevision = Revision::V0_0;
     Variant DetectedVariant = Variant::Runtime;
 
     decltype(&__android_log_print) original_android_log_print;
@@ -170,34 +170,7 @@ namespace
             return std::make_tuple(major, minor);
         }();
 
-        // TODO: Replace this loop
-        for (const auto &[major, minor, revision] : {
-            std::make_tuple(3, 0, Revision::V3_0),
-            std::make_tuple(3, 4, Revision::V3_4),
-            std::make_tuple(3, 5, Revision::V3_5),
-            std::make_tuple(4, 0, Revision::V4_0),
-            std::make_tuple(5, 0, Revision::V5_0),
-            std::make_tuple(5, 1, Revision::V5_1),
-            std::make_tuple(5, 2, Revision::V5_2),
-            std::make_tuple(5, 3, Revision::V5_3),
-            std::make_tuple(5, 4, Revision::V5_4),
-            std::make_tuple(5, 5, Revision::V5_5),
-            std::make_tuple(2017, 1, Revision::V2017_1),
-            std::make_tuple(2017, 3, Revision::V2017_3),
-            std::make_tuple(2018, 2, Revision::V2018_2),
-            std::make_tuple(2018, 3, Revision::V2018_3),
-            std::make_tuple(2019, 1, Revision::V2019_1),
-            std::make_tuple(2019, 2, Revision::V2019_2),
-            std::make_tuple(2019, 3, Revision::V2019_3),
-            std::make_tuple(2019, 4, Revision::V2019_4),
-            std::make_tuple(2020, 1, Revision::V2020_1),
-            std::make_tuple(2021, 1, Revision::V2021_1),
-            std::make_tuple(2022, 1, Revision::V2022_1),
-            std::make_tuple(2022, 2, Revision::V2022_2),
-            std::make_tuple(2022, 3, Revision::V2022_3),
-            std::make_tuple(2023, 1, Revision::V2023_1),
-            std::make_tuple(6000, 0, Revision::V6000_0),
-        })
+        for (const auto &[major, minor, revision] : kRevisionVersions)
         {
             if (parsedMajor > major
                 || (parsedMajor == major && parsedMinor >= minor))

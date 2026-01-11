@@ -9,36 +9,51 @@ enum class Variant
     Count
 };
 
+#define FOR_EACH_REVISION(X) \
+    X(0, 0) \
+    X(3, 0) \
+    X(3, 4) \
+    X(3, 5) \
+    X(4, 0) \
+    X(5, 0) \
+    X(5, 1) \
+    X(5, 2) \
+    X(5, 3) \
+    X(5, 4) \
+    X(5, 5) \
+    X(2017, 1) \
+    X(2017, 3) \
+    X(2018, 2) \
+    X(2018, 3) \
+    X(2019, 1) \
+    X(2019, 2) \
+    X(2019, 3) \
+    X(2019, 4) \
+    X(2020, 1) \
+    X(2021, 1) \
+    X(2022, 1) \
+    X(2022, 2) \
+    X(2022, 3) \
+    X(2023, 1) \
+    X(6000, 0) \
+    
+
 enum class Revision
 {
-    V0,
-    V3_0,
-    V3_4,
-    V3_5,
-    V4_0,
-    V5_0,
-    V5_1,
-    V5_2,
-    V5_3,
-    V5_4,
-    V5_5,
-    V2017_1,
-    V2017_3,
-    V2018_2,
-    V2018_3,
-    V2019_1,
-    V2019_2,
-    V2019_3,
-    V2019_4,
-    V2020_1,
-    V2021_1,
-    V2022_1,
-    V2022_2,
-    V2022_3,
-    V2023_1,
-    V6000_0,
+#define DEFINE_REVISION_ENUM_ENTRY(major, minor) V##major##_##minor,
+    FOR_EACH_REVISION(DEFINE_REVISION_ENUM_ENTRY)
+#undef DEFINE_REVISION_ENUM_ENTRY
+
     Count,
 };
+
+constexpr std::array kRevisionVersions = {
+#define DEFINE_REVISION_VERSION_ENTRY(major, minor) std::make_tuple(major, minor, Revision::V##major##_##minor),
+    FOR_EACH_REVISION(DEFINE_REVISION_VERSION_ENTRY)
+#undef DEFINE_REVISION_VERSION_ENTRY
+};
+
+#undef FOR_EACH_REVISION
 
 namespace details
 {
