@@ -27,7 +27,7 @@ public:
 
             const auto findResult = dl_iterate_phdr([](dl_phdr_info* info, size_t size, void* context) -> int {
                 if (std::string_view(info->dlpi_name).ends_with("/libunity.so")) {
-                    const auto result = (ElfInfo*)context;
+                    const auto result = static_cast<ElfInfo*>(context);
                     result->Sections = std::span(info->dlpi_phdr, info->dlpi_phnum);
                     result->BaseAddress = info->dlpi_addr;
                     return true;
@@ -55,7 +55,7 @@ public:
                 if (phdr.p_flags & PF_X)
                     protection |= ExecutableSection::kSectionProtectionExecute;
 
-                CachedSections.emplace_back(std::span((char*)base, size), protection);
+                CachedSections.emplace_back(std::span(reinterpret_cast<char*>(base), size), protection);
             }
         }
 
@@ -112,13 +112,18 @@ namespace
     }
 }
 
+extern "C" void StartDumper()
+{
+    setenv("UNITY_GIVE_CHANCE_TO_ATTACH_DEBUGGER", "1", true);
+    std::thread(ThreadMain).detach();
+}
+
 extern "C" jint JNIEXPORT JNI_OnLoad(JavaVM* vm, void* reserved)
 {
     static constexpr auto kKittyInjectorMagic = 1337;
     if (reinterpret_cast<uintptr_t>(reserved) == kKittyInjectorMagic)
     {
-        setenv("UNITY_GIVE_CHANCE_TO_ATTACH_DEBUGGER", "1", true);
-        std::thread(ThreadMain).detach();
+        StartDumper();
     }
 
     return JNI_VERSION_1_6;
