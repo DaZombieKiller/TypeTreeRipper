@@ -1,18 +1,25 @@
 #include <cstdarg>
-
-#include "dumper.hpp"
-#include <bits/elf_common.h>
 #include <filesystem>
+#include <span>
+#include <string_view>
+#include <fstream>
+#include <array>
+#include <vector>
+#include <sstream>
+
+#include <android/api-level.h>
+#include <bits/elf_common.h>
 #include <jni.h>
 #include <android/log.h>
 #include <link.h>
 #include <linux/elf.h>
-#include <span>
-#include <thread>
-#include <mutex>
+#include <dlfcn.h>
 
-#include "executable.hpp"
 #include "dobby.h"
+
+#include "common.hpp"
+#include "executable.hpp"
+#include "dumper.hpp"
 
 template<Revision R, Variant V>
 class AndroidDumper
@@ -96,17 +103,132 @@ namespace
 
     decltype(&__android_log_print) original_android_log_print;
     decltype(&__android_log_vprint) original_android_log_vprint;
+    __android_logger_function original_android_logger_function;
+
+    void ProcessProductNameMessage(const std::string_view) 
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Detected Unity engine initialization, starting dumper");
+        RunDumper<AndroidDumper>(DetectedRevision, DetectedVariant);
+        __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Dumper finished!");
+
+        std::abort();
+    }
+
+    void ProcessBuiltFromMessage(const std::string_view msg) 
+    {
+        size_t previousOffset = 0;
+
+        std::array<std::string_view, 6> components;
+        for (int i = 0; i < components.size(); i++)
+        {
+            const auto start = msg.find('\'', previousOffset);
+            if (start == std::string_view::npos)
+                break;
+
+            const auto end = msg.find('\'', start + 1);
+            if (end == std::string_view::npos)
+                break;
+
+            components[i] = msg.substr(start + 1, end - start - 1);
+            previousOffset = end + 1;
+        }
+
+        // Branch
+        const auto version = components[1]; // Version
+        const auto buildType = components[2]; // Build type
+        // Scripting Backend
+        // CPU
+        // Stripping
+
+        // 'Release' or 'Development'
+        if (buildType.starts_with("Release"))
+        {
+            DetectedVariant = Variant::Runtime;
+        }
+        else if (buildType.starts_with("Development"))
+        {
+            DetectedVariant = Variant::RuntimeDev;
+        }
+        else
+        {
+            __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Invalid build type detected: %s", buildType.data());
+        }
+
+        const auto [parsedMajor, parsedMinor] = [version]
+        {
+            // spanstream doesn't exist in the android ndk :(
+            const auto versionString = std::string(version);
+            std::istringstream versionParser(versionString);
+
+            std::string versionComponent;
+            std::getline(versionParser, versionComponent, '.');
+            const auto major = std::stoi(versionComponent);
+
+            std::getline(versionParser, versionComponent, '.');
+            const auto minor = std::stoi(versionComponent);
+
+            return std::make_tuple(major, minor);
+        }();
+
+        // TODO: Replace this loop
+        for (const auto &[major, minor, revision] : {
+            std::make_tuple(3, 0, Revision::V3_0),
+            std::make_tuple(3, 4, Revision::V3_4),
+            std::make_tuple(3, 5, Revision::V3_5),
+            std::make_tuple(4, 0, Revision::V4_0),
+            std::make_tuple(5, 0, Revision::V5_0),
+            std::make_tuple(5, 1, Revision::V5_1),
+            std::make_tuple(5, 2, Revision::V5_2),
+            std::make_tuple(5, 3, Revision::V5_3),
+            std::make_tuple(5, 4, Revision::V5_4),
+            std::make_tuple(5, 5, Revision::V5_5),
+            std::make_tuple(2017, 1, Revision::V2017_1),
+            std::make_tuple(2017, 3, Revision::V2017_3),
+            std::make_tuple(2018, 2, Revision::V2018_2),
+            std::make_tuple(2018, 3, Revision::V2018_3),
+            std::make_tuple(2019, 1, Revision::V2019_1),
+            std::make_tuple(2019, 2, Revision::V2019_2),
+            std::make_tuple(2019, 3, Revision::V2019_3),
+            std::make_tuple(2019, 4, Revision::V2019_4),
+            std::make_tuple(2020, 1, Revision::V2020_1),
+            std::make_tuple(2021, 1, Revision::V2021_1),
+            std::make_tuple(2022, 1, Revision::V2022_1),
+            std::make_tuple(2022, 2, Revision::V2022_2),
+            std::make_tuple(2022, 3, Revision::V2022_3),
+            std::make_tuple(2023, 1, Revision::V2023_1),
+            std::make_tuple(6000, 0, Revision::V6000_0),
+        })
+        {
+            if (parsedMajor > major
+                || (parsedMajor == major && parsedMinor >= minor))
+            {
+                DetectedRevision = revision;
+            }
+        }
+
+        __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Parsed revision %d and variant %d from info string",
+            DetectedRevision, DetectedVariant);
+    }
+
+    void ProcessLogMessage(const std::string_view msg) 
+    {
+        if (msg.starts_with("Product Name:")
+            // Older Unity versions unfortunately don't have the above log line, so we use
+            // one from the IL2CPP init instead.
+            || msg.starts_with("Java VM not initialized"))
+        {
+            ProcessProductNameMessage(msg);
+        }
+
+        if (msg.starts_with("Built from"))
+        {
+            ProcessBuiltFromMessage(msg);
+        }
+    }
 
     int hooked_android_log_print(int prio, const char *tag, const char *fmt, ...)
     {
-        if (std::string_view(fmt).starts_with("Product Name:"))
-        {
-            original_android_log_print(ANDROID_LOG_DEBUG, tag, "[TypeTreeRipper] Detected Unity engine initialization, starting dumper");
-            RunDumper<AndroidDumper>(DetectedRevision, DetectedVariant);
-            original_android_log_print(ANDROID_LOG_DEBUG, tag, "[TypeTreeRipper] Dumper finished!");
-
-            std::abort();
-        }
+        ProcessLogMessage(std::string_view(fmt));
 
         va_list va;
         va_start(va, fmt);
@@ -129,101 +251,7 @@ namespace
             ap = copy;
         }
 
-        if (msg.starts_with("Built from"))
-        {
-            size_t previousOffset = 0;
-
-            std::array<std::string_view, 6> components;
-            for (int i = 0; i < components.size(); i++)
-            {
-                const auto start = msg.find('\'', previousOffset);
-                if (start == std::string_view::npos)
-                    break;
-
-                const auto end = msg.find('\'', start + 1);
-                if (end == std::string_view::npos)
-                    break;
-
-                components[i] = msg.substr(start + 1, end - start - 1);
-                previousOffset = end + 1;
-            }
-
-            // Branch
-            const auto version = components[1]; // Version
-            const auto buildType = components[2]; // Build type
-            // Scripting Backend
-            // CPU
-            // Stripping
-
-            // 'Release' or 'Development'
-            if (buildType.starts_with("Release"))
-            {
-                DetectedVariant = Variant::Runtime;
-            }
-            else if (buildType.starts_with("Development"))
-            {
-                DetectedVariant = Variant::RuntimeDev;
-            }
-            else
-            {
-                original_android_log_print(ANDROID_LOG_DEBUG, tag, "[TypeTreeRipper] Invalid build type detected: %s", buildType.data());
-            }
-
-            const auto [parsedMajor, parsedMinor] = [version]
-            {
-                // spanstream doesn't exist in the android ndk :(
-                const auto versionString = std::string(version);
-                std::istringstream versionParser(versionString);
-
-                std::string versionComponent;
-                std::getline(versionParser, versionComponent, '.');
-                const auto major = std::stoi(versionComponent);
-
-                std::getline(versionParser, versionComponent, '.');
-                const auto minor = std::stoi(versionComponent);
-
-                return std::make_tuple(major, minor);
-            }();
-
-            // TODO: Replace this loop
-            for (const auto &[major, minor, revision] : {
-                std::make_tuple(3, 0, Revision::V3_0),
-                std::make_tuple(3, 4, Revision::V3_4),
-                std::make_tuple(3, 5, Revision::V3_5),
-                std::make_tuple(4, 0, Revision::V4_0),
-                std::make_tuple(5, 0, Revision::V5_0),
-                std::make_tuple(5, 1, Revision::V5_1),
-                std::make_tuple(5, 2, Revision::V5_2),
-                std::make_tuple(5, 3, Revision::V5_3),
-                std::make_tuple(5, 4, Revision::V5_4),
-                std::make_tuple(5, 5, Revision::V5_5),
-                std::make_tuple(2017, 1, Revision::V2017_1),
-                std::make_tuple(2017, 3, Revision::V2017_3),
-                std::make_tuple(2018, 2, Revision::V2018_2),
-                std::make_tuple(2018, 3, Revision::V2018_3),
-                std::make_tuple(2019, 1, Revision::V2019_1),
-                std::make_tuple(2019, 2, Revision::V2019_2),
-                std::make_tuple(2019, 3, Revision::V2019_3),
-                std::make_tuple(2019, 4, Revision::V2019_4),
-                std::make_tuple(2020, 1, Revision::V2020_1),
-                std::make_tuple(2021, 1, Revision::V2021_1),
-                std::make_tuple(2022, 1, Revision::V2022_1),
-                std::make_tuple(2022, 2, Revision::V2022_2),
-                std::make_tuple(2022, 3, Revision::V2022_3),
-                std::make_tuple(2023, 1, Revision::V2023_1),
-                std::make_tuple(6000, 0, Revision::V6000_0),
-            })
-            {
-                if (parsedMajor > major
-                    || (parsedMajor == major && parsedMinor >= minor))
-                {
-                    DetectedRevision = revision;
-                }
-            }
-
-            original_android_log_print(ANDROID_LOG_DEBUG, tag, "[TypeTreeRipper] Parsed revision %d and variant %d from info string",
-                DetectedRevision, DetectedVariant);
-        }
+        ProcessLogMessage(std::string_view(msg));
 
         const auto result = original_android_log_vprint(prio, tag, fmt, ap);
         va_end(ap);
@@ -233,13 +261,32 @@ namespace
 
 extern "C" void StartDumper()
 {
-    const auto androidLogPrint = DobbySymbolResolver("liblog.so", "__android_log_print");
-    const auto androidLogVPrint = DobbySymbolResolver("liblog.so", "__android_log_vprint");
-    if (androidLogPrint == nullptr || androidLogVPrint == nullptr)
-        return;
+    if (android_get_device_api_level() >= 30) 
+    {
+        const auto liblog = dlopen("liblog.so", 0);
+        const auto p__android_log_set_logger = (decltype(&__android_log_set_logger))dlsym(liblog, "__android_log_set_logger");
+        original_android_logger_function = (decltype(&__android_log_logd_logger))dlsym(liblog, "__android_log_logd_logger");
+        p__android_log_set_logger([](const __android_log_message* msg)
+        {
+            ProcessLogMessage(msg->message);
+            original_android_logger_function(msg);
+        });
+    }
+    else 
+    {
+        // fallback for API level < 30
 
-    DobbyHook(androidLogPrint, (void *)hooked_android_log_print, (void **)&original_android_log_print);
-    DobbyHook(androidLogVPrint, (void *)hooked_android_log_vprint, (void **)&original_android_log_vprint);
+        const auto androidLogPrint = DobbySymbolResolver("liblog.so", "__android_log_print");
+        const auto androidLogVPrint = DobbySymbolResolver("liblog.so", "__android_log_vprint");
+        if (androidLogPrint == nullptr || androidLogVPrint == nullptr)
+        {
+            __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Failed to resolve android log functions :(");
+            return;
+        }
+
+        DobbyHook(androidLogPrint, (void *)hooked_android_log_print, (void **)&original_android_log_print);
+        DobbyHook(androidLogVPrint, (void *)hooked_android_log_vprint, (void **)&original_android_log_vprint);
+    }
 }
 
 extern "C" jint JNIEXPORT JNI_OnLoad(JavaVM* vm, void* reserved)
