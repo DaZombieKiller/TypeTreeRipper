@@ -9,12 +9,12 @@ class Object;
 template<Revision R, Variant V>
 struct RTTI;
 
-DECLARE_REVISION(RTTI, Revision::V5_0);
-DECLARE_REVISION(RTTI, Revision::V5_1);
-DECLARE_REVISION(RTTI, Revision::V5_2);
-DECLARE_REVISION(RTTI, Revision::V5_4);
-DECLARE_REVISION(RTTI, Revision::V5_5);
-DECLARE_REVISION(RTTI, Revision::V2017_3);
+DECLARE_REVISION(RTTI, Revision::V5_0_0);
+DECLARE_REVISION(RTTI, Revision::V5_1_0);
+DECLARE_REVISION(RTTI, Revision::V5_2_0);
+DECLARE_REVISION(RTTI, Revision::V5_4_0);
+DECLARE_REVISION(RTTI, Revision::V5_5_0);
+DECLARE_REVISION(RTTI, Revision::V2017_3_0);
 
 //
 // 3.x & 4.x
@@ -36,7 +36,7 @@ struct RTTI
 // 5.0
 //
 
-DEFINE_REVISION(struct, RTTI, Revision::V5_0)
+DEFINE_REVISION(struct, RTTI, Revision::V5_0_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
@@ -51,7 +51,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_0)
 // 5.1
 //
 
-DEFINE_REVISION(struct, RTTI, Revision::V5_1)
+DEFINE_REVISION(struct, RTTI, Revision::V5_1_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
@@ -67,7 +67,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_1)
 // 5.2
 //
 
-DEFINE_REVISION(struct, RTTI, Revision::V5_2)
+DEFINE_REVISION(struct, RTTI, Revision::V5_2_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
@@ -89,7 +89,7 @@ struct DerivedFromInfo
     uint32_t descendantCount;
 };
 
-DEFINE_REVISION(struct, RTTI, Revision::V5_4)
+DEFINE_REVISION(struct, RTTI, Revision::V5_4_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
@@ -106,7 +106,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_4)
 // 5.5
 //
 
-DEFINE_REVISION(struct, RTTI, Revision::V5_5)
+DEFINE_REVISION(struct, RTTI, Revision::V5_5_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);
@@ -124,7 +124,7 @@ DEFINE_REVISION(struct, RTTI, Revision::V5_5)
 // 2017.3
 //
 
-DEFINE_REVISION(struct, RTTI, Revision::V2017_3)
+DEFINE_REVISION(struct, RTTI, Revision::V2017_3_0)
 {
     RTTI *base;
     Object<R, V> *(*factory)(MemLabelId<R, V>, ObjectCreationMode);

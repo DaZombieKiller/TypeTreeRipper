@@ -5,12 +5,12 @@
 template<Revision R, Variant V>
 class TransferBase;
 
-DECLARE_REVISION(TransferBase, Revision::V5_0);
-DECLARE_REVISION(TransferBase, Revision::V2019_1);
-DECLARE_REVISION(TransferBase, Revision::V2019_3);
-DECLARE_REVISION(TransferBase, Revision::V2019_4);
-DECLARE_REVISION(TransferBase, Revision::V2021_1);
-DECLARE_REVISION(TransferBase, Revision::V2022_3);
+DECLARE_REVISION(TransferBase, Revision::V5_0_0);
+DECLARE_REVISION(TransferBase, Revision::V2019_1_0);
+DECLARE_REVISION(TransferBase, Revision::V2019_3_0);
+DECLARE_REVISION(TransferBase, Revision::V2019_4_0);
+DECLARE_REVISION(TransferBase, Revision::V2021_1_0);
+DECLARE_REVISION(TransferBase, Revision::V2022_3_0);
 
 //
 // 4.x
@@ -28,7 +28,7 @@ protected:
 // 5.0
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V5_0)
+DEFINE_REVISION(class, TransferBase, Revision::V5_0_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};
@@ -40,7 +40,7 @@ protected:
 // 2019.1
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V2019_1)
+DEFINE_REVISION(class, TransferBase, Revision::V2019_1_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};
@@ -53,7 +53,7 @@ protected:
 // 2019.3
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V2019_3)
+DEFINE_REVISION(class, TransferBase, Revision::V2019_3_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};
@@ -67,7 +67,7 @@ protected:
 // 2019.4
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V2019_4)
+DEFINE_REVISION(class, TransferBase, Revision::V2019_4_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};
@@ -81,7 +81,7 @@ protected:
 // 2021.1
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V2021_1)
+DEFINE_REVISION(class, TransferBase, Revision::V2021_1_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};
@@ -95,7 +95,7 @@ protected:
 // 2022.3
 //
 
-DEFINE_REVISION(class, TransferBase, Revision::V2022_3)
+DEFINE_REVISION(class, TransferBase, Revision::V2022_3_0)
 {
 protected:
     TransferInstructionFlags<R, V> m_Flags = {};

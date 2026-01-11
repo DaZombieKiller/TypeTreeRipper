@@ -6,7 +6,7 @@
 template<Revision R, Variant V>
 class GenerateTypeTreeTransfer;
 
-DECLARE_REVISION(GenerateTypeTreeTransfer, Revision::V5_0);
+DECLARE_REVISION(GenerateTypeTreeTransfer, Revision::V5_0_0);
 
 //
 // 4.x
@@ -43,7 +43,7 @@ public:
 // 5.0 to current
 //
 
-DEFINE_REVISION(class, GenerateTypeTreeTransfer, Revision::V5_0) : public TransferBase<R, V>
+DEFINE_REVISION(class, GenerateTypeTreeTransfer, Revision::V5_0_0) : public TransferBase<R, V>
 {
     TypeTree<R, V> &m_TypeTree;
     TypeTreeIterator<R, V> m_ActiveFather;

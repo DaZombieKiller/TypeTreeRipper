@@ -16,17 +16,17 @@ class TypeTreeIterator;
 template<Revision R, Variant V>
 struct TypeTreeShareableData;
 
-DECLARE_REVISION(TypeTree, Revision::V2019_1);
-DECLARE_REVISION(TypeTree, Revision::V2019_3);
-DECLARE_REVISION(TypeTreeNode, Revision::V2019_1);
-DECLARE_REVISION(TypeTreeIterator, Revision::V2019_1);
-DECLARE_REVISION(TypeTreeShareableData, Revision::V2019_2);
-DECLARE_REVISION(TypeTreeShareableData, Revision::V2022_3);
+DECLARE_REVISION(TypeTree, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTree, Revision::V2019_3_0);
+DECLARE_REVISION(TypeTreeNode, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTreeIterator, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTreeShareableData, Revision::V2019_2_0);
+DECLARE_REVISION(TypeTreeShareableData, Revision::V2022_3_0);
 
 DEFINE_ENUM(TransferInstructionFlags, int32_t,
     kSerializeGameRelease = 0x0100);
 
-DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1,
+DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
     kSerializeGameRelease = 0x0100);
 
 //
@@ -124,7 +124,7 @@ public:
     }
 };
 
-DEFINE_REVISION(class, TypeTree, Revision::V2019_1)
+DEFINE_REVISION(class, TypeTree, Revision::V2019_1_0)
 {
     TypeTreeShareableData<R, V> *m_Data;
     TypeTreeShareableData<R, V> m_PrivateData;
@@ -152,7 +152,7 @@ public:
     }
 };
 
-DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1)
+DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1_0)
 {
     int16_t m_Version = 0;
     uint8_t m_Level = 0;
@@ -173,7 +173,7 @@ DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1)
     };
 };
 
-DEFINE_REVISION(class, TypeTreeIterator, Revision::V2019_1)
+DEFINE_REVISION(class, TypeTreeIterator, Revision::V2019_1_0)
 {
     TypeTree<R, V> const *m_LinkedTypeTree;
     TypeTreeShareableData<R, V> const *m_TypeTreeData;
@@ -191,7 +191,7 @@ public:
 // 2019.2
 //
 
-DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2)
+DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2_0)
 {
     dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
     dynamic_array<R, V>::template type<char> m_StringBuffer;
@@ -230,7 +230,7 @@ public:
 // 2019.3
 //
 
-DEFINE_REVISION(class, TypeTree, Revision::V2019_3)
+DEFINE_REVISION(class, TypeTree, Revision::V2019_3_0)
 {
     class Pool;
     TypeTreeShareableData<R, V> *m_Data;
@@ -263,7 +263,7 @@ public:
 // 2022.3
 //
 
-DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3)
+DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3_0)
 {
     dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
     dynamic_array<R, V>::template type<uint8_t> m_Levels;

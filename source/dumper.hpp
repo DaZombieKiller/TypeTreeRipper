@@ -102,7 +102,7 @@ class Dumper : public IDumper
         if (!IsValidPointer(pArray, sizeof(RuntimeTypeArray)))
             return false;
 
-        if constexpr (R >= Revision::V5_2)
+        if constexpr (R >= Revision::V5_2_0)
         {
             if (pArray->Count < 2 || pArray->Count > pArray->Types.size())
                 return false;
@@ -195,7 +195,7 @@ public:
     {
         PlatformImpl.DebugLog("Dumper started");
 
-        if constexpr (R >= Revision::V5_2)
+        if constexpr (R >= Revision::V5_2_0)
         {
             auto pArray = GetRuntimeTypeArray();
             auto pTable = GetCommonStringBuffer();

@@ -14,10 +14,10 @@ enum ObjectCreationMode : int
 template<Revision R, Variant V>
 class Object;
 
-DECLARE_REVISION(Object, Revision::V5_0);
-DECLARE_REVISION(Object, Revision::V2017_1);
-DECLARE_REVISION(Object, Revision::V2018_2);
-DECLARE_REVISION(Object, Revision::V2021_1);
+DECLARE_REVISION(Object, Revision::V5_0_0);
+DECLARE_REVISION(Object, Revision::V2017_1_0);
+DECLARE_REVISION(Object, Revision::V2018_2_0);
+DECLARE_REVISION(Object, Revision::V2021_1_0);
 
 //
 // 3.0 (default)
@@ -60,7 +60,7 @@ public:
 // 5.0
 //
 
-DEFINE_REVISION(class, Object, Revision::V5_0)
+DEFINE_REVISION(class, Object, Revision::V5_0_0)
 {
     using ProxyTransfer = ::GenerateTypeTreeTransfer<R, V>;
 public:
@@ -96,7 +96,7 @@ public:
 
 enum HideFlags : int;
 
-DEFINE_REVISION(class, Object, Revision::V2017_1)
+DEFINE_REVISION(class, Object, Revision::V2017_1_0)
 {
     using RTTI = ::RTTI<R, V>;
     using GenerateTypeTreeTransfer = ::GenerateTypeTreeTransfer<R, V>;
@@ -132,7 +132,7 @@ public:
 // 2018.2
 //
 
-DEFINE_REVISION(class, Object, Revision::V2018_2)
+DEFINE_REVISION(class, Object, Revision::V2018_2_0)
 {
     using RTTI = ::RTTI<R, V>;
     using GenerateTypeTreeTransfer = ::GenerateTypeTreeTransfer<R, V>;
@@ -164,7 +164,7 @@ public:
 // 2021.1
 //
 
-DEFINE_REVISION(class, Object, Revision::V2021_1)
+DEFINE_REVISION(class, Object, Revision::V2021_1_0)
 {
     using RTTI = ::RTTI<R, V>;
     using GenerateTypeTreeTransfer = ::GenerateTypeTreeTransfer<R, V>;
