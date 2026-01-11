@@ -5,7 +5,6 @@
 #include <wil/win32_result_macros.h>
 #include "common.hpp"
 #include "dumper.hpp"
-#include "RTTI.hpp"
 #include <filesystem>
 #undef WIN32_LEAN_AND_MEAN
 
@@ -69,6 +68,12 @@ public:
         // NOTE: Should this be made configurable? i.e. through an environment variable?
         return std::ofstream(std::filesystem::current_path() / filename);
     }
+
+    static void DebugLog(char const *message)
+    {
+        OutputDebugStringA(message);
+        OutputDebugStringA("\n");
+    }
 private:
     std::vector<ExecutableSection> CachedSections;
 };
@@ -77,75 +82,19 @@ private:
 // The dumper has two primary requirements:
 //  1. It must run on the Unity main thread.
 //  2. The engine needs to be initialized (so that object creation may succeed).
-// To do this, we hook LoadLibrary and wait for Mono to be loaded, then we hook
-// mono_image_open_from_data_with_name to kick off the dumper and return a fail
+// To do this, we hook SetWindowLongPtrA (this is called right after engine init)
+// to kick off the dumper and return a fail
 // to cause the engine to quit afterwards.
 //
 
 namespace
 {
-    decltype(&LoadLibraryA) pLoadLibraryA;
+    decltype(&SetWindowLongPtrA) pSetWindowLongPtrA;
 
-    decltype(&LoadLibraryW) pLoadLibraryW;
-
-    wil::critical_section MonoLock;
-
-    bool MonoDetoured;
-
-    void *(*pMonoImageOpen)(char *, uint32_t, int32_t, void *, int32_t, char const *);
-    void *DetourMonoImageOpen(char *, uint32_t, int32_t, void *, int32_t, char const *)
+    LONG_PTR WINAPI DetourSetWindowLongPtrA(HWND, int, LONG_PTR)
     {
-        // TODO: Determine which variant and revision to use
         RunDumper<WindowsDumper>(Revision::V6000_0, Variant::Runtime);
-        return nullptr;
-    }
-
-    bool IsMonoModule(HMODULE module)
-    {
-        if (module == nullptr)
-            return false;
-
-        return module == GetModuleHandleW(L"mono-2.0-bdwgc.dll")
-            || module == GetModuleHandleW(L"mono.dll");
-    }
-
-    LONG DetourMono(HMODULE hMono)
-    {
-        auto _ = MonoLock.lock();
-
-        if (MonoDetoured)
-            return ERROR_SUCCESS;
-
-        RETURN_IF_WIN32_ERROR(DetourTransactionBegin());
-        *(void **)&pMonoImageOpen = GetProcAddress(hMono, "mono_image_open_from_data_with_name");
-        RETURN_IF_WIN32_ERROR(DetourAttach((void **)&pMonoImageOpen, &DetourMonoImageOpen));
-        RETURN_IF_WIN32_ERROR(DetourTransactionCommit());
-        MonoDetoured = true;
-        return ERROR_SUCCESS;
-    }
-
-    HMODULE WINAPI DetourLoadLibraryW(LPCWSTR lpLibFileName)
-    {
-        HMODULE hModule = pLoadLibraryW(lpLibFileName);
-
-        if (IsMonoModule(hModule))
-        {
-            FAIL_FAST_IF_WIN32_ERROR(DetourMono(hModule));
-        }
-
-        return hModule;
-    }
-
-    HMODULE WINAPI DetourLoadLibraryA(LPCSTR lpLibFileName)
-    {
-        HMODULE hModule = pLoadLibraryA(lpLibFileName);
-
-        if (IsMonoModule(hModule))
-        {
-            FAIL_FAST_IF_WIN32_ERROR(DetourMono(hModule));
-        }
-
-        return hModule;
+        ExitProcess(0);
     }
 }
 
@@ -154,10 +103,8 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD f
     if (fdwReason == DLL_PROCESS_ATTACH)
     {
         FAIL_FAST_IF_WIN32_ERROR(DetourTransactionBegin());
-        *(void **)&pLoadLibraryW = GetProcAddress(GetModuleHandleW(L"KERNEL32"), "LoadLibraryW");
-        *(void **)&pLoadLibraryA = GetProcAddress(GetModuleHandleW(L"KERNEL32"), "LoadLibraryA");
-        FAIL_FAST_IF_WIN32_ERROR(DetourAttach((void **)&pLoadLibraryW, &DetourLoadLibraryW));
-        FAIL_FAST_IF_WIN32_ERROR(DetourAttach((void **)&pLoadLibraryA, &DetourLoadLibraryA));
+        *(void **)&pSetWindowLongPtrA = GetProcAddress(GetModuleHandleW(L"USER32"), "SetWindowLongPtrA");
+        FAIL_FAST_IF_WIN32_ERROR(DetourAttach((void **)&pSetWindowLongPtrA, &DetourSetWindowLongPtrA));
         FAIL_FAST_IF_WIN32_ERROR(DetourTransactionCommit());
     }
 
