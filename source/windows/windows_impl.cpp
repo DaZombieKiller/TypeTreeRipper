@@ -93,7 +93,7 @@ namespace
 
     LONG_PTR WINAPI DetourSetWindowLongPtrA(HWND, int, LONG_PTR)
     {
-        RunDumper<WindowsDumper>(Revision::V6000_0, Variant::Runtime);
+        RunDumper<WindowsDumper>(Revision::V2023_1_0, Variant::Runtime);
         ExitProcess(0);
     }
 }
