@@ -6,6 +6,7 @@ enum class Variant
     Editor,
     Runtime,
     RuntimeDev,
+    Count
 };
 
 enum class Revision

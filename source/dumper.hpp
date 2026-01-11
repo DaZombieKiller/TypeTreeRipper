@@ -228,11 +228,10 @@ private:
 };
 
 template<Revision R, Variant V, typename TPlatformImpl>
-    //requires std::is_base_of_v<IPlatformImpl<R, V>, TPlatformImpl>
     requires IsPlatformImpl<R, V, TPlatformImpl>
 Dumper<R, V, TPlatformImpl> Dumper<R, V, TPlatformImpl>::Instance;
 
-template<Variant V, template<Revision PlatformImplR, Variant PlatformImplV> typename TPlatformImpl>
+template<Variant V, template<Revision, Variant> typename TPlatformImpl>
 class DumperArray
 {
     // Layer of indirection added so that we can static_assert on the platform implementation concept
@@ -247,25 +246,21 @@ public:
     static constexpr auto Instances = []<size_t... I>(std::index_sequence<I...>)
     {
         return std::array<IDumper *, sizeof...(I)>{ &DumperInstantiationHelper<static_cast<Revision>(I)>::DumperType::Instance... };
-    }(std::make_index_sequence<static_cast<size_t>(Revision::Count)>{});
+    }(std::make_index_sequence<std::to_underlying(Revision::Count)>{});
 };
 
-template<template<Revision R, Variant V> typename TPlatformImpl>
+template<template<Revision, Variant> typename TPlatformImpl>
+static constexpr auto DumperVariantInstances = []<size_t... I>(std::index_sequence<I...>)
+{
+    return std::array<const std::array<IDumper *, std::to_underlying(Revision::Count)>, sizeof...(I)>{ DumperArray<static_cast<Variant>(I), TPlatformImpl>::Instances... };
+}(std::make_index_sequence<std::to_underlying(Variant::Count)>{});
+
+template<template<Revision, Variant> typename TPlatformImpl>
 void RunDumper(const Revision revision, const Variant variant)
 {
     const auto intRevision = std::to_underlying(revision);
+    const auto intVariant = std::to_underlying(variant);
 
-    switch (variant)
-    {
-    case Variant::Editor:
-        DumperArray<Variant::Editor, TPlatformImpl>::Instances[intRevision]->Run();
-        break;
-    case Variant::Runtime:
-        DumperArray<Variant::Runtime, TPlatformImpl>::Instances[intRevision]->Run();
-        break;
-    case Variant::RuntimeDev:
-        DumperArray<Variant::RuntimeDev, TPlatformImpl>::Instances[intRevision]->Run();
-        break;
-    }
+    return DumperVariantInstances<TPlatformImpl>[intVariant][intRevision]->Run();
 }
 
