@@ -2,9 +2,11 @@ file(GLOB SOURCE_FILES CONFIGURE_DEPENDS "*.cpp" "*.hpp")
 
 if (ANDROID) # needs to be first for cross-compilation purposes
     file(GLOB_RECURSE ANDROID_SOURCE_FILES "android/*.cpp" "android/*.hpp")
+    file(GLOB_RECURSE ANDROID_XHOOK_SOURCE_FILES "android/xhook/*.c" "android/xhook/*.h")
 
-    add_library(TypeTreeRipper SHARED ${SOURCE_FILES} ${ANDROID_SOURCE_FILES})
-    target_include_directories(TypeTreeRipper PRIVATE "." "android")
+    add_library(TypeTreeRipper SHARED ${SOURCE_FILES} ${ANDROID_SOURCE_FILES} ${ANDROID_XHOOK_SOURCE_FILES})
+    target_include_directories(TypeTreeRipper PRIVATE "." "android" "android/xhook")
+    target_link_libraries(TypeTreeRipper PRIVATE log)
 elseif (WIN32)
     find_path(DETOURS_INCLUDE_DIRS "detours/detours.h")
     find_library(DETOURS_LIBRARY detours REQUIRED)

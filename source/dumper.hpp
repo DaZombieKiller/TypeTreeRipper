@@ -6,6 +6,7 @@
 #include <span>
 #include <functional>
 #include <algorithm>
+#include <ranges>
 
 #include "MemLabelId.hpp"
 #include "Object.hpp"
@@ -106,14 +107,14 @@ class Dumper : public IDumper
             if (pArray->Count < 2 || pArray->Count > pArray->Types.size())
                 return false;
 
-            for (int i = 0; i < pArray->Count; i++)
+            for (int i = 0; i < 2; i++)
             {
                 if (!IsValidPointer(pArray->Types[i], sizeof(RTTI)))
                 {
                     return false;
                 }
 
-                if (pArray->Types[i]->factory && !IsValidPointer(pArray->Types[i]->factory, 1))
+                if (pArray->Types[i]->factory && !IsValidPointer(reinterpret_cast<void const*>(pArray->Types[i]->factory), 1))
                 {
                     return false;
                 }
@@ -136,17 +137,22 @@ class Dumper : public IDumper
 
     RuntimeTypeArray const *GetRuntimeTypeArray()
     {
-        for (const auto &section : PlatformImpl.GetExecutableSections())
+        PlatformImpl.DebugLog("Retrieving RuntimeTypeArray");
+
+        for (const auto &section : PlatformImpl.GetExecutableSections() | std::views::filter([](const ExecutableSection& x)
         {
             // The runtime type array is initialized at runtime, if the section
-            // is not writable then it can not contain the runtime type array.
-            if ((section.Protection & ExecutableSection::kSectionProtectionWrite) == 0)
-                continue;
+               // is not writable then it can not contain the runtime type array.
+            if ((x.Protection & ExecutableSection::kSectionProtectionWrite) == 0)
+                return false;
 
-            if ((section.Protection & ExecutableSection::kSectionProtectionRead) == 0)
-                continue;
+            if ((x.Protection & ExecutableSection::kSectionProtectionRead) == 0)
+                return false;
 
-            for (size_t i = 0; i < section.Data.size() - sizeof(RuntimeTypeArray); i++)
+            return true;
+        }))
+        {
+            for (size_t i = 0; i < section.Data.size() - sizeof(RuntimeTypeArray); i += sizeof(uintptr_t))
             {
                 auto pArray = reinterpret_cast<RuntimeTypeArray const *>(section.Data.data() + i);
 
@@ -157,11 +163,15 @@ class Dumper : public IDumper
             }
         }
 
+        PlatformImpl.DebugLog("Failed to find RuntimeTypeArray");
+
         return nullptr;
     }
 
     char const *GetCommonStringBuffer()
     {
+        PlatformImpl.DebugLog("Retrieving common string buffer");
+
         static constexpr auto kCommonStringBufferPattern = std::span("AABB\0AnimationClip");
         const auto searcher = std::boyer_moore_horspool_searcher(std::cbegin(kCommonStringBufferPattern), std::cend(kCommonStringBufferPattern));
 
@@ -183,6 +193,8 @@ class Dumper : public IDumper
 public:
     void Run() override
     {
+        PlatformImpl.DebugLog("Dumper started");
+
         if constexpr (R >= Revision::V5_2)
         {
             auto pArray = GetRuntimeTypeArray();
@@ -192,6 +204,8 @@ public:
 
             for (int i = 0; i < pArray->Count; i++)
             {
+                PlatformImpl.DebugLog((std::string("Processing type ") + pArray->Types[i]->className).c_str());
+
                 RTTI *pRTTI = pArray->Types[i];
 
                 if (pRTTI->isAbstract || !pRTTI->factory)

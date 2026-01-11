@@ -18,7 +18,8 @@
       },
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}"
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
       }
     },
     {
