@@ -1,5 +1,6 @@
 #pragma once
 #include <utility>
+#include <array>
 
 enum class Variant
 {
@@ -10,37 +11,31 @@ enum class Variant
 };
 
 #define FOR_EACH_REVISION(X) \
-    X(0, 0) \
-    X(3, 0) \
-    X(3, 4) \
-    X(3, 5) \
-    X(4, 0) \
-    X(5, 0) \
-    X(5, 1) \
-    X(5, 2) \
-    X(5, 3) \
-    X(5, 4) \
-    X(5, 5) \
-    X(2017, 1) \
-    X(2017, 3) \
-    X(2018, 2) \
-    X(2018, 3) \
-    X(2019, 1) \
-    X(2019, 2) \
-    X(2019, 3) \
-    X(2019, 4) \
-    X(2020, 1) \
-    X(2021, 1) \
-    X(2022, 1) \
-    X(2022, 2) \
-    X(2022, 3) \
-    X(2023, 1) \
-    X(6000, 0) \
+    X(0, 0, 0) \
+    X(5, 0, 0) \
+    X(5, 1, 0) \
+    X(5, 2, 0) \
+    X(5, 4, 0) \
+    X(5, 5, 0) \
+    X(2017, 1, 0) \
+    X(2017, 3, 0) \
+    X(2017, 4, 0) \
+    X(2018, 2, 0) \
+    X(2018, 3, 0) \
+    X(2019, 1, 0) \
+    X(2019, 2, 0) \
+    X(2019, 3, 0) \
+    X(2019, 4, 0) \
+    X(2021, 1, 0) \
+    X(2021, 3, 0) \
+    X(2022, 2, 0) \
+    X(2022, 3, 0) \
+    X(2023, 1, 0) \
     
 
 enum class Revision
 {
-#define DEFINE_REVISION_ENUM_ENTRY(major, minor) V##major##_##minor,
+#define DEFINE_REVISION_ENUM_ENTRY(major, minor, patch) V##major##_##minor##_##patch##,
     FOR_EACH_REVISION(DEFINE_REVISION_ENUM_ENTRY)
 #undef DEFINE_REVISION_ENUM_ENTRY
 
@@ -48,7 +43,7 @@ enum class Revision
 };
 
 constexpr std::array kRevisionVersions = {
-#define DEFINE_REVISION_VERSION_ENTRY(major, minor) std::make_tuple(major, minor, Revision::V##major##_##minor),
+#define DEFINE_REVISION_VERSION_ENTRY(major, minor, patch) std::make_tuple(major, minor, patch, Revision::V##major##_##minor##_##patch##),
     FOR_EACH_REVISION(DEFINE_REVISION_VERSION_ENTRY)
 #undef DEFINE_REVISION_VERSION_ENTRY
 };

@@ -154,7 +154,7 @@ namespace
             __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Invalid build type detected: %s", buildType.data());
         }
 
-        const auto [parsedMajor, parsedMinor] = [version]
+        const auto [parsedMajor, parsedMinor, parsedPatch] = [version]
         {
             // spanstream doesn't exist in the android ndk :(
             const auto versionString = std::string(version);
@@ -167,13 +167,17 @@ namespace
             std::getline(versionParser, versionComponent, '.');
             const auto minor = std::stoi(versionComponent);
 
-            return std::make_tuple(major, minor);
+            std::getline(versionParser, versionComponent, '.');
+            const auto patch = std::stoi(versionComponent);
+
+            return std::make_tuple(major, minor, patch);
         }();
 
-        for (const auto &[major, minor, revision] : kRevisionVersions)
+        for (const auto &[major, minor, patch, revision] : kRevisionVersions)
         {
             if (parsedMajor > major
-                || (parsedMajor == major && parsedMinor >= minor))
+                || (parsedMajor == major && (parsedMinor > minor
+                    || (parsedMinor == minor && parsedPatch >= patch))))
             {
                 DetectedRevision = revision;
             }
@@ -185,10 +189,11 @@ namespace
 
     void ProcessLogMessage(const std::string_view msg) 
     {
+        // Older Unity versions unfortunately don't have the name log line, so we use
+        // one from the IL2CPP init instead.
         if (msg.starts_with("Product Name:")
-            // Older Unity versions unfortunately don't have the above log line, so we use
-            // one from the IL2CPP init instead.
-            || msg.starts_with("Java VM not initialized"))
+            || msg.starts_with("Java VM not initialized")
+            /* || msg.starts_with("Locale ") */)
         {
             ProcessProductNameMessage(msg);
         }
