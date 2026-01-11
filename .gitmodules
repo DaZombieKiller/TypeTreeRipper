@@ -1,0 +1,4 @@
+[submodule "source/android/xhook"]
+	path = source/android/xhook
+	url = ../../weebl2000/xHook
+	branch = ndk28
