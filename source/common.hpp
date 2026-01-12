@@ -77,7 +77,7 @@ inline std::optional<Variant> ExecutableNameToVariant(const std::string_view nam
 inline std::string_view VariantToString(const Variant variant)
 {
     constexpr std::array kVariantNames = {
-    #define DEFINE_VARIANT_STRING_ENTRY(Name) #Name,  
+#define DEFINE_VARIANT_STRING_ENTRY(Name) #Name,  
             FOR_EACH_VARIANT(DEFINE_VARIANT_STRING_ENTRY)
 #undef DEFINE_VARIANT_STRING_ENTRY
     };
