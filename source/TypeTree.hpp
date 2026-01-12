@@ -54,7 +54,10 @@ class TypeTree
     dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
 public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label)
+        : m_Nodes(label, 1), m_StringBuffer(label), m_ByteOffsets(label)
     {
+        m_Nodes[0].m_Index = -1;
+        m_Nodes[0].m_ByteSize = -1;
     }
 
     TypeTreeShareableData<R, V> *GetData() const
@@ -99,9 +102,14 @@ class TypeTreeShareableData
     std::atomic<int> m_RefCount;
     MemLabelId<R, V> const &m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        m_Nodes[0].m_Version = 1;
+        m_Nodes[0].m_ByteSize = -1;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
@@ -200,9 +208,14 @@ DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2_0)
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> const &m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        m_Nodes[0].m_Version = 1;
+        m_Nodes[0].m_ByteSize = -1;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
@@ -274,9 +287,18 @@ DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3_0)
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_Levels(label, 1),
+        m_NextIndex(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        m_Nodes[0].m_Version = 1;
+        m_Nodes[0].m_ByteSize = -1;
+        m_Levels[0] = 0;
+        m_NextIndex[0] = -1;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)

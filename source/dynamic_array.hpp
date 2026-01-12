@@ -14,6 +14,21 @@ struct dynamic_array
         size_t m_size = 0;
         size_t m_capacity = 0;
     public:
+        // The lowest bit in m_capacity is used as an "external pointer" check.
+        // We set this when allocating memory ourselves, so that on reallocation it does not get used internally
+        // and crash the engine.
+        explicit type(MemLabelId<R, V> const &label)
+            : m_label(label), m_capacity(1)
+        {
+        }
+
+        explicit type(MemLabelId<R, V> const &label, const size_t initialSize)
+            : m_label(label), m_size(initialSize), m_capacity(initialSize << 1 | 1)
+        {
+            m_data = static_cast<T*>(malloc(sizeof(T) * m_size));
+            ::memset(static_cast<void*>(m_data), 0, sizeof(T) * m_size);
+        }
+
         T *data()
         {
             return m_data;
