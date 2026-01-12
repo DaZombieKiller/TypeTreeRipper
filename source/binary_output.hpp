@@ -329,7 +329,7 @@ public:
             dumpedTree.TransferFlags |= DumpedTypeTree::kTransferFlagSerializeGameRelease;
         }
 
-        if (!rtti->isAbstract && !rtti->factory)
+        if (!rtti->isAbstract && rtti->factory)
         {
             const auto stringBuffer = tree.StringsBuffer();
             const auto nodes = tree.Nodes();
