@@ -6,18 +6,19 @@
 #include "common.hpp"
 #include "dumper.hpp"
 #include <filesystem>
+
+#pragma comment(lib, "Version.lib")
 #undef WIN32_LEAN_AND_MEAN
 
-template<Revision R, Variant V>
-class WindowsDumper
+namespace
 {
-    static HMODULE GetUnityModule()
+    HMODULE GetUnityModule()
     {
         for (const auto &module : {
             L"UnityPlayer.dll",
-            L"Unity.dll", 
-            L"Unity.exe" 
-        })
+            L"Unity.dll",
+            L"Unity.exe"
+            })
         {
             const auto hModule = GetModuleHandleW(module);
             if (hModule != nullptr)
@@ -26,7 +27,11 @@ class WindowsDumper
 
         FAIL_FAST_WIN32(ERROR_NOT_FOUND);
     }
+}
 
+template<Revision R, Variant V>
+class WindowsDumper
+{
 public:
     std::span<ExecutableSection> GetExecutableSections()
     {
@@ -89,11 +94,101 @@ private:
 
 namespace
 {
+    constexpr auto kForceRevisionEnvironmentVariable = L"TYPETREERIPPER_FORCE_REVISION";
+    constexpr auto kForceVariantEnvironmentVariable = L"TYPETREERIPPER_FORCE_VARIANT";
+
+    std::optional<Revision> GetUnityRevisionFromExecutable()
+    {
+        const auto module = GetUnityModule();
+        const auto unityModuleFilepath = wil::GetModuleFileNameW(module);
+
+        if (const auto size = GetFileVersionInfoSizeW(unityModuleFilepath.get(), nullptr);
+            size > 0)
+        {
+            const auto versionData = std::make_unique<char[]>(size);
+            if (GetFileVersionInfoW(unityModuleFilepath.get(), NULL, size, versionData.get()))
+            {
+                void *versionBuffer = nullptr;
+                auto versionBufferSize = 0u;
+
+                if (VerQueryValueW(versionData.get(), L"\\", &versionBuffer, &versionBufferSize)
+                    && versionBuffer)
+                {
+                    if (const auto versionInfo = static_cast<VS_FIXEDFILEINFO *>(versionBuffer);
+                        versionInfo->dwSignature == VS_FFI_SIGNATURE)
+                    {
+                        const auto major = HIWORD(versionInfo->dwFileVersionMS);
+                        const auto minor = LOWORD(versionInfo->dwFileVersionMS);
+                        const auto patch = HIWORD(versionInfo->dwFileVersionLS);
+                        // revision
+
+                        return VersionToRevision(major, minor, patch);
+                    }
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    Revision DetectRevision()
+    {
+        if (const auto forcedRevisionString = wil::TryGetEnvironmentVariableW(kForceRevisionEnvironmentVariable);
+            forcedRevisionString != nullptr)
+        {
+            if (const auto parsedRevision = VersionStringToRevision(forcedRevisionString.get());
+                parsedRevision.has_value())
+            {
+                return parsedRevision.value();
+            }
+        }
+
+        if (const auto executableVersion = GetUnityRevisionFromExecutable();
+            executableVersion.has_value())
+        {
+            return executableVersion.value();
+        }
+
+        FAIL_FAST_WIN32(ERROR_NOT_FOUND);
+    }
+
+    std::optional<Variant> GetUnityVariantFromExecutable()
+    {
+        const auto module = GetUnityModule();
+        const auto unityModuleFilepath = wil::GetModuleFileNameW(module);
+        const auto unityModuleName = std::filesystem::path(unityModuleFilepath.get()).filename();
+        return ExecutableNameToVariant(unityModuleName.string());
+    }
+
+    Variant DetectVariant()
+    {
+        if (const auto forcedVariantString = wil::TryGetEnvironmentVariableW(kForceVariantEnvironmentVariable);
+            forcedVariantString != nullptr)
+        {
+            if (const auto parsedVariant = VariantStringToVariant(forcedVariantString.get());
+                parsedVariant.has_value())
+            {
+                return parsedVariant.value();
+            }
+        }
+
+        if (const auto executableVariant = GetUnityVariantFromExecutable();
+            executableVariant.has_value())
+        {
+            return executableVariant.value();
+        }
+
+        FAIL_FAST_WIN32(ERROR_NOT_FOUND);
+    }
+
     decltype(&SetWindowLongPtrA) pSetWindowLongPtrA;
 
     LONG_PTR WINAPI DetourSetWindowLongPtrA(HWND, int, LONG_PTR)
     {
-        RunDumper<WindowsDumper>(Revision::V2023_1_0, Variant::Runtime);
+        const auto revision = DetectRevision();
+        const auto variant = DetectVariant();
+
+        RunDumper<WindowsDumper>(revision, variant);
         ExitProcess(0);
     }
 }

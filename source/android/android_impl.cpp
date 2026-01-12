@@ -98,8 +98,8 @@ private:
 
 namespace
 {
-    Revision DetectedRevision = Revision::V0_0;
-    Variant DetectedVariant = Variant::Runtime;
+    auto DetectedRevision = Revision::V0_0_0;
+    auto DetectedVariant = Variant::Runtime;
 
     decltype(&__android_log_print) original_android_log_print;
     decltype(&__android_log_vprint) original_android_log_vprint;
@@ -154,33 +154,10 @@ namespace
             __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Invalid build type detected: %s", buildType.data());
         }
 
-        const auto [parsedMajor, parsedMinor, parsedPatch] = [version]
+        if (const auto parsedRevision = VersionStringToRevision(std::string(version));
+            parsedRevision.has_value())
         {
-            // spanstream doesn't exist in the android ndk :(
-            const auto versionString = std::string(version);
-            std::istringstream versionParser(versionString);
-
-            std::string versionComponent;
-            std::getline(versionParser, versionComponent, '.');
-            const auto major = std::stoi(versionComponent);
-
-            std::getline(versionParser, versionComponent, '.');
-            const auto minor = std::stoi(versionComponent);
-
-            std::getline(versionParser, versionComponent, '.');
-            const auto patch = std::stoi(versionComponent);
-
-            return std::make_tuple(major, minor, patch);
-        }();
-
-        for (const auto &[major, minor, patch, revision] : kRevisionVersions)
-        {
-            if (parsedMajor > major
-                || (parsedMajor == major && (parsedMinor > minor
-                    || (parsedMinor == minor && parsedPatch >= patch))))
-            {
-                DetectedRevision = revision;
-            }
+            DetectedRevision = parsedRevision.value();
         }
 
         __android_log_print(ANDROID_LOG_DEBUG, "Unity", "[TypeTreeRipper] Parsed revision %d and variant %d from info string",
