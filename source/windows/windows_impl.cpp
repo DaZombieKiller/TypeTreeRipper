@@ -71,7 +71,7 @@ public:
     {
         // Create the output file in the current directory.
         // NOTE: Should this be made configurable? i.e. through an environment variable?
-        return std::ofstream(std::filesystem::current_path() / filename);
+        return std::ofstream(std::filesystem::current_path() / filename, std::ios::out | std::ios::binary);
     }
 
     static void DebugLog(char const *message)

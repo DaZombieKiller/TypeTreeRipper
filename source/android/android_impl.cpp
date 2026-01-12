@@ -85,7 +85,7 @@ public:
 
         const auto outputDirectory = std::filesystem::path("/data/data") / packageName / "files";
         const auto outputPath = outputDirectory / filename;
-        return std::ofstream(outputPath);
+        return std::ofstream(outputPath, std::ios::out | std::ios::binary);
     }
 
     static void DebugLog(char const *message)

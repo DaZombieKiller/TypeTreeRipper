@@ -14,6 +14,7 @@
 #include "platform_impl.hpp"
 #include "dumper.hpp"
 #include "executable.hpp"
+#include "binary_output.hpp"
 
 struct IDumper
 {
@@ -33,50 +34,7 @@ class Dumper : public IDumper
     using RuntimeTypeArray = ::RuntimeTypeArray<R, V>;
     using RTTI = ::RTTI<R, V>;
 
-    void DumpNodes(TypeTree &tree, char const *commonString, std::ofstream &ofs)
-    {
-        int minLevel = INT_MAX;
-
-        for (int n = 0; n < tree.Nodes().size(); n++)
-        {
-            auto &node = tree.Nodes()[n];
-
-            if (node.m_Level < minLevel)
-            {
-                minLevel = node.m_Level;
-            }
-        }
-
-        for (int n = 0; n < tree.Nodes().size(); n++)
-        {
-            auto &node = tree.Nodes()[n];
-
-            for (int ind = 0; ind < node.m_Level - minLevel; ind++)
-                ofs << '\t';
-
-            if ((node.m_TypeStrOffset & 0x80000000) == 0)
-            {
-                ofs << tree.StringsBuffer().data() + node.m_TypeStrOffset;
-            }
-            else
-            {
-                ofs << commonString + (node.m_TypeStrOffset & ~0x80000000);
-            }
-
-            ofs << " ";
-
-            if ((node.m_NameStrOffset & 0x80000000) == 0)
-            {
-                ofs << tree.StringsBuffer().data() + node.m_NameStrOffset;
-            }
-            else
-            {
-                ofs << commonString + (node.m_NameStrOffset & ~0x80000000);
-            }
-
-            ofs.put(ofs.widen('\n'));
-        }
-    }
+    using DumpedTypeTreeWriter = ::DumpedTypeTreeWriter<R, V>;
 
     bool IsValidPointer(void const *ptr, const size_t size, const uint8_t expectedProtection = ExecutableSection::kSectionProtectionRead)
     {
@@ -114,7 +72,7 @@ class Dumper : public IDumper
                     return false;
                 }
 
-                if (pArray->Types[i]->factory && !IsValidPointer(reinterpret_cast<void const*>(pArray->Types[i]->factory), 1))
+                if (pArray->Types[i]->factory && !IsValidPointer(reinterpret_cast<void const *>(pArray->Types[i]->factory), 1))
                 {
                     return false;
                 }
@@ -139,7 +97,7 @@ class Dumper : public IDumper
     {
         PlatformImpl.DebugLog("Retrieving RuntimeTypeArray");
 
-        for (const auto &section : PlatformImpl.GetExecutableSections() | std::views::filter([](const ExecutableSection& x)
+        for (const auto &section : PlatformImpl.GetExecutableSections() | std::views::filter([](const ExecutableSection &x)
         {
             // The runtime type array is initialized at runtime, if the section
                // is not writable then it can not contain the runtime type array.
@@ -200,8 +158,6 @@ public:
             auto pArray = GetRuntimeTypeArray();
             auto pTable = GetCommonStringBuffer();
 
-            auto ofs = PlatformImpl.CreateOutputFile("types.txt");
-
             for (int i = 0; i < pArray->Count; i++)
             {
                 PlatformImpl.DebugLog((std::string("Processing type ") + pArray->Types[i]->className).c_str());
@@ -215,16 +171,25 @@ public:
                 Object *object = pRTTI->factory(label, kCreateObjectDefault);
                 TypeTreeShareableData data(label);
                 TypeTree tree(&data, label);
-                GenerateTypeTreeTransfer transfer(tree, TransferInstructionFlags::kSerializeGameRelease, object, pRTTI->size);
+
+                const auto flags = TransferInstructionFlags::kSerializeGameRelease;
+                GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
                 object->VirtualRedirectTransfer(transfer);
-                DumpNodes(tree, pTable, ofs);
+                
+                Writer.Add(pRTTI, tree, flags, pTable);
             }
+
+            PlatformImpl.DebugLog("Dumped types, now writing to file");
+
+            auto outputStream = PlatformImpl.CreateOutputFile("dumped.ttbin");
+            Writer.Write(outputStream);
         }
     }
 
     static Dumper Instance;
 private:
     TPlatformImpl PlatformImpl{};
+    DumpedTypeTreeWriter Writer{};
 };
 
 template<Revision R, Variant V, typename TPlatformImpl>

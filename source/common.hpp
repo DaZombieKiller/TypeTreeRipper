@@ -74,6 +74,17 @@ inline std::optional<Variant> ExecutableNameToVariant(const std::string_view nam
     return std::nullopt;
 }
 
+inline std::string_view VariantToString(const Variant variant)
+{
+    constexpr std::array kVariantNames = {
+    #define DEFINE_VARIANT_STRING_ENTRY(Name) #Name,  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_STRING_ENTRY)
+#undef DEFINE_VARIANT_STRING_ENTRY
+    };
+
+    return kVariantNames[std::to_underlying(variant)];
+}
+
 #undef FOR_EACH_VARIANT
 
 #define FOR_EACH_REVISION(X) \
@@ -111,26 +122,28 @@ enum class Revision
     Count,
 };
 
+using RevisionVersion = std::tuple<uint16_t, uint8_t, uint8_t>;
+
 template <typename StringType, typename StringStreamType, auto Delimiter>
-std::tuple<int, int, int> ParseVersionString(const StringType &value)
+RevisionVersion ParseVersionString(const StringType &value)
 {
     // spanstream doesn't exist in the android ndk :(
     StringStreamType versionParser(value);
 
     StringType versionComponent;
     std::getline(versionParser, versionComponent, Delimiter);
-    const auto major = std::stoi(versionComponent);
+    const auto major = static_cast<uint16_t>(std::stoi(versionComponent));
 
     std::getline(versionParser, versionComponent, Delimiter);
-    const auto minor = std::stoi(versionComponent);
+    const auto minor = static_cast<uint8_t>(std::stoi(versionComponent));
 
     std::getline(versionParser, versionComponent, Delimiter);
-    const auto patch = std::stoi(versionComponent);
+    const auto patch = static_cast<uint8_t>(std::stoi(versionComponent));
 
     return std::make_tuple(major, minor, patch);
 }
 
-inline std::optional<Revision> VersionToRevision(const int major, const int minor, const int patch)
+inline std::optional<Revision> VersionToRevision(const uint16_t major, const uint8_t minor, const uint8_t patch)
 {
     constexpr std::array kRevisionVersions = {
 #define DEFINE_REVISION_VERSION_ENTRY(major, minor, patch) std::make_tuple(major, minor, patch, Revision::V##major##_##minor##_##patch), 
@@ -157,7 +170,7 @@ template<typename StringType>
     requires std::convertible_to<StringType, std::string> || std::convertible_to<StringType, std::wstring>
 std::optional<Revision> VersionStringToRevision(const StringType& value)
 {
-    std::tuple<int, int, int> versionComponents;
+    RevisionVersion versionComponents;
     
     if constexpr (std::convertible_to<StringType, std::string>)
     {
@@ -170,6 +183,17 @@ std::optional<Revision> VersionStringToRevision(const StringType& value)
 
     const auto& [major, minor, patch] = versionComponents;
     return VersionToRevision(major, minor, patch);
+}
+
+inline RevisionVersion RevisionToVersion(const Revision revision)
+{
+    constexpr std::array kRevisionVersions = {
+#define DEFINE_REVISION_VERSION_TUPLE_ENTRY(major, minor, patch) std::make_tuple<uint16_t, uint8_t, uint8_t>(major, minor, patch), 
+        FOR_EACH_REVISION(DEFINE_REVISION_VERSION_TUPLE_ENTRY)
+#undef DEFINE_REVISION_VERSION_ENTRY
+    };
+
+    return kRevisionVersions[std::to_underlying(revision)];
 }
 
 #undef FOR_EACH_REVISION
