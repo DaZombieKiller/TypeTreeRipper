@@ -99,7 +99,7 @@ class TypeTreeShareableData
     dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
     dynamic_array<R, V>::template type<char> m_StringBuffer;
     dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
-    std::atomic<int> m_RefCount;
+    std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> const &m_MemLabel;
 public:
     explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
@@ -125,11 +125,6 @@ public:
     {
         return m_StringBuffer;
     }
-
-    void Retain()
-    {
-        m_RefCount++;
-    }
 };
 
 DEFINE_REVISION(class, TypeTree, Revision::V2019_1_0)
@@ -141,7 +136,6 @@ public:
         m_Data(sharedType),
         m_PrivateData(label)
     {
-        sharedType->Retain();
     }
 
     TypeTreeShareableData<R, V> *GetData() const
@@ -232,11 +226,6 @@ public:
     {
         return m_StringBuffer;
     }
-
-    void Retain()
-    {
-        m_RefCount++;
-    }
 };
 
 //
@@ -253,7 +242,6 @@ public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label) :
         m_Data(sharedType)
     {
-        sharedType->Retain();
     }
 
     TypeTreeShareableData<R, V> *GetData() const
@@ -314,10 +302,5 @@ public:
     dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
-    }
-
-    void Retain()
-    {
-        m_RefCount++;
     }
 };
