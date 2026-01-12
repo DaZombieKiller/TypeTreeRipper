@@ -61,6 +61,7 @@ inline std::optional<Variant> ExecutableNameToVariant(const std::string_view nam
 {
     constexpr std::array kExecutableVariants = {
         std::make_tuple("Unity.exe", Variant::Editor),
+        std::make_tuple("Unity.com", Variant::Editor),
     };
 
     for (const auto& [executableName, variant] : kExecutableVariants)
