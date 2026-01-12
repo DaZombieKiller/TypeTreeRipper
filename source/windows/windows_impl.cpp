@@ -154,10 +154,31 @@ namespace
 
     std::optional<Variant> GetUnityVariantFromExecutable()
     {
+        const auto executableFilepath = wil::GetModuleFileNameW();
+        const auto executableName = std::filesystem::path(executableFilepath.get()).filename().string();
+        return ExecutableNameToVariant(executableName);
+    }
+
+    std::optional<Variant> GetUnityVariantFromUnityModule()
+    {
         const auto module = GetUnityModule();
         const auto unityModuleFilepath = wil::GetModuleFileNameW(module);
-        const auto unityModuleName = std::filesystem::path(unityModuleFilepath.get()).filename();
-        return ExecutableNameToVariant(unityModuleName.string());
+        const auto unityModuleName = std::filesystem::path(unityModuleFilepath.get()).filename().string();
+
+        // UnityPlayer.dll is either Runtime or RuntimeDev
+        if (unityModuleName == "UnityPlayer.dll")
+        {
+            return Variant::Runtime;
+        }
+        
+        // Unity.dll is always the editor
+        // (Unity.exe is checked in the executable check)
+        if (unityModuleName == "Unity.dll")
+        {
+            return Variant::Editor;
+        }
+
+        return std::nullopt;
     }
 
     Variant DetectVariant()
@@ -176,6 +197,12 @@ namespace
             executableVariant.has_value())
         {
             return executableVariant.value();
+        }
+
+        if (const auto unityModuleVariant = GetUnityVariantFromUnityModule();
+            unityModuleVariant.has_value())
+        {
+            return unityModuleVariant.value();
         }
 
         FAIL_FAST_WIN32(ERROR_NOT_FOUND);

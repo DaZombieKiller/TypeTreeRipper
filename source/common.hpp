@@ -60,8 +60,6 @@ std::optional<Variant> VariantStringToVariant(const StringViewType name)
 inline std::optional<Variant> ExecutableNameToVariant(const std::string_view name)
 {
     constexpr std::array kExecutableVariants = {
-        std::make_tuple("UnityPlayer.dll", Variant::Runtime),
-        std::make_tuple("Unity.dll", Variant::Editor),
         std::make_tuple("Unity.exe", Variant::Editor),
     };
 
