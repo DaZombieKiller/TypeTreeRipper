@@ -329,13 +329,16 @@ public:
             dumpedTree.TransferFlags |= DumpedTypeTree::kTransferFlagSerializeGameRelease;
         }
 
-        const auto stringBuffer = tree.StringsBuffer();
-        const auto nodes = tree.Nodes();
-
-        dumpedTree.Nodes = std::vector<DumpedTypeTreeNode>(nodes.size());
-        for (size_t i = 0; i < nodes.size(); i++)
+        if (!rtti->isAbstract && !rtti->factory)
         {
-            ConvertNode(nodes[i], dumpedTree.Nodes[i], stringBuffer.data(), commonStringBuffer);
+            const auto stringBuffer = tree.StringsBuffer();
+            const auto nodes = tree.Nodes();
+
+            dumpedTree.Nodes = std::vector<DumpedTypeTreeNode>(nodes.size());
+            for (size_t i = 0; i < nodes.size(); i++)
+            {
+                ConvertNode(nodes[i], dumpedTree.Nodes[i], stringBuffer.data(), commonStringBuffer);
+            }
         }
 
         TypeTrees.push_back(std::move(dumpedTree));

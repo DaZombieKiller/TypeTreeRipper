@@ -164,17 +164,18 @@ public:
 
                 RTTI *pRTTI = pArray->Types[i];
 
-                if (pRTTI->isAbstract || !pRTTI->factory)
-                    continue;
-
                 MemLabelId label;
-                Object *object = pRTTI->factory(label, kCreateObjectDefault);
                 TypeTreeShareableData data(label);
                 TypeTree tree(&data, label);
 
                 const auto flags = TransferInstructionFlags::kSerializeGameRelease;
-                GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
-                object->VirtualRedirectTransfer(transfer);
+
+                if (!pRTTI->isAbstract && pRTTI->factory)
+                {
+                    Object *object = pRTTI->factory(label, kCreateObjectDefault);
+                    GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
+                    object->VirtualRedirectTransfer(transfer);
+                }
                 
                 Writer.Add(pRTTI, tree, flags, pTable);
             }
