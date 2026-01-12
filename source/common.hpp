@@ -22,18 +22,6 @@ template<typename StringViewType>
     requires std::convertible_to<StringViewType, std::string_view> || std::convertible_to<StringViewType, std::wstring_view>
 std::optional<Variant> VariantStringToVariant(const StringViewType name)
 {
-    constexpr std::array kVariantNamesA = {
-    #define DEFINE_VARIANT_NAME_A_ENTRY(Name) std::make_tuple(#Name, Variant::Name), 
-        FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_A_ENTRY)
-#undef DEFINE_VARIANT_NAME_A_ENTRY
-    };
-
-    constexpr std::array kVariantNamesW = {
-    #define DEFINE_VARIANT_NAME_W_ENTRY(Name) std::make_tuple(L""#Name, Variant::Name), 
-        FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_W_ENTRY)
-#undef DEFINE_VARIANT_NAME_W_ENTRY
-    };
-
     const auto convertString = [name](const auto names) -> std::optional<Variant>
     {
         for (const auto &[variantName, variant] : names)
@@ -47,14 +35,25 @@ std::optional<Variant> VariantStringToVariant(const StringViewType name)
         return std::nullopt;
     };
 
-    std::array<std::tuple<StringViewType, Variant>, kVariantNamesA.size()> variantNames;
     if constexpr (std::convertible_to<StringViewType, std::string_view>)
     {
-        return convertString(kVariantNamesA);
+        constexpr std::array kVariantNames = {
+#define DEFINE_VARIANT_NAME_A_ENTRY(Name) std::make_tuple(#Name, Variant::Name),  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_A_ENTRY)
+#undef DEFINE_VARIANT_NAME_A_ENTRY
+        };
+
+        return convertString(kVariantNames);
     }
     else
     {
-        return convertString(kVariantNamesW);
+        constexpr std::array kVariantNames = {
+#define DEFINE_VARIANT_NAME_W_ENTRY(Name) std::make_tuple(L""#Name, Variant::Name),  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_W_ENTRY)
+#undef DEFINE_VARIANT_NAME_W_ENTRY
+        };
+
+        return convertString(kVariantNames);
     }
 }
 
