@@ -158,32 +158,42 @@ public:
             auto pArray = GetRuntimeTypeArray();
             auto pTable = GetCommonStringBuffer();
 
-            for (int i = 0; i < pArray->Count; i++)
+            const auto dumpTypes = [&](const TransferInstructionFlags &flags, const std::string_view outputName)
             {
-                PlatformImpl.DebugLog((std::string("Processing type ") + pArray->Types[i]->className).c_str());
-
-                RTTI *pRTTI = pArray->Types[i];
-
-                MemLabelId label;
-                TypeTreeShareableData data(label);
-                TypeTree tree(&data, label);
-
-                const auto flags = TransferInstructionFlags::kSerializeGameRelease;
-
-                if (!pRTTI->isAbstract && pRTTI->factory)
+                for (int i = 0; i < pArray->Count; i++)
                 {
-                    Object *object = pRTTI->factory(label, kCreateObjectDefault);
-                    GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
-                    object->VirtualRedirectTransfer(transfer);
+                    PlatformImpl.DebugLog((std::string("Processing type ") + pArray->Types[i]->className).c_str());
+
+                    RTTI *pRTTI = pArray->Types[i];
+
+                    MemLabelId label;
+                    TypeTreeShareableData data(label);
+                    TypeTree tree(&data, label);
+
+                    if (!pRTTI->isAbstract && pRTTI->factory)
+                    {
+                        Object *object = pRTTI->factory(label, kCreateObjectDefault);
+                        GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
+                        object->VirtualRedirectTransfer(transfer);
+                    }
+
+                    Writer.Add(pRTTI, tree, flags, pTable);
                 }
-                
-                Writer.Add(pRTTI, tree, flags, pTable);
+
+                PlatformImpl.DebugLog("Dumped types, now writing to file");
+
+                auto outputStream = PlatformImpl.CreateOutputFile(outputName.data());
+                Writer.Write(outputStream);
+            };
+
+            // Always dump release types
+            dumpTypes(TransferInstructionFlags::kSerializeGameRelease, "release.ttbin");
+
+            // If we are in an editor, also dump the editor types
+            if constexpr (V == Variant::Editor)
+            {
+                dumpTypes(TransferInstructionFlags::kNone, "editor.ttbin");
             }
-
-            PlatformImpl.DebugLog("Dumped types, now writing to file");
-
-            auto outputStream = PlatformImpl.CreateOutputFile("dumped.ttbin");
-            Writer.Write(outputStream);
         }
     }
 

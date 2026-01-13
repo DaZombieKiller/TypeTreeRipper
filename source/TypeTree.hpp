@@ -24,9 +24,11 @@ DECLARE_REVISION(TypeTreeShareableData, Revision::V2019_2_0);
 DECLARE_REVISION(TypeTreeShareableData, Revision::V2022_3_0);
 
 DEFINE_ENUM(TransferInstructionFlags, int32_t,
+    kNone = 0,
     kSerializeGameRelease = 0x0100);
 
 DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
+    kNone = 0,
     kSerializeGameRelease = 0x0100);
 
 DEFINE_ENUM(TransferMetaFlags, int32_t,
