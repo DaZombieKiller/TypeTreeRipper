@@ -3,6 +3,26 @@
 #include "MemLabelId.hpp"
 
 template<Revision R, Variant V>
+struct dynamic_array_traits;
+
+DECLARE_REVISION(dynamic_array_traits, Revision::V2018_3_0);
+
+template<Revision R, Variant V>
+struct dynamic_array_traits
+{
+    // We set this when allocating memory ourselves, so that on reallocation it does not get used internally
+    // and crash the engine.
+    static constexpr size_t k_reference_bit = ~((~0zu << 1) >> 1);
+    static constexpr size_t k_capacity_shift = 0;
+};
+
+DEFINE_REVISION(struct, dynamic_array_traits, Revision::V2018_3_0)
+{
+    static constexpr size_t k_reference_bit = 1;
+    static constexpr size_t k_capacity_shift = 1;
+};
+
+template<Revision R, Variant V>
 struct dynamic_array
 {
     template<typename T>
@@ -15,25 +35,21 @@ struct dynamic_array
         size_t m_capacity = 0;
     public:
         explicit type(MemLabelId<R, V> const &label)
-            : m_label(label), m_capacity(1)
+            : m_label(label), m_capacity(dynamic_array_traits<R, V>::k_reference_bit)
         {
         }
 
         explicit type(MemLabelId<R, V> const &label, const size_t initialSize)
             : m_label(label)
         {
-            assign_external(new T[initialSize], initialSize);
+            assign_external(new T[initialSize], initialSize, initialSize);
         }
 
-        void assign_external(T* ptr, const size_t size)
+        void assign_external(T* ptr, const size_t size, const size_t capacity)
         {
-            // The lowest bit in m_capacity is used as an "external pointer" check.
-            // We set this when allocating memory ourselves, so that on reallocation it does not get used internally
-            // and crash the engine.
-
             m_data = ptr;
             m_size = size;
-            m_capacity = (size << 1) | 1;
+            m_capacity = (capacity << dynamic_array_traits<R, V>::k_capacity_shift) | dynamic_array_traits<R, V>::k_reference_bit;
         }
 
         T *data()
@@ -53,7 +69,7 @@ struct dynamic_array
 
         size_t capacity() const
         {
-            return m_capacity;
+            return (m_capacity & ~dynamic_array_traits<R, V>::k_reference_bit) >> dynamic_array_traits<R, V>::k_capacity_shift;
         }
 
         T &operator[](size_t index)
