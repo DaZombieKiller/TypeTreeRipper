@@ -29,6 +29,38 @@ DEFINE_ENUM(TransferInstructionFlags, int32_t,
 DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
     kSerializeGameRelease = 0x0100);
 
+DEFINE_ENUM(TransferMetaFlags, int32_t,
+    kNoTransferFlags = 0,
+    kHideInEditorMask = 1 << 0,
+    // ?
+    // ?
+    // ?
+    kNotEditableMask = 1 << 4,
+    kReorderable = 1 << 5,
+    kStrongPPtrMask = 1 << 6,
+    // ?
+    kTreatIntegerValueAsBoolean = 1 << 8,
+    // ?
+    // ?
+    // ?
+    kDebugPropertyMask = 1 << 12,
+    // ?
+    kAlignBytesFlag = 1 << 14,
+    kAnyChildUsesAlignBytesFlag = 1 << 15,
+    // ?
+    // ?
+    // ?
+    kIgnoreInMetaFiles = 1 << 19,
+    kTransferAsArrayEntryNameInMetaFiles = 1 << 20,
+    kTransferUsingFlowMappingStyle = 1 << 21,
+    kGenerateBitwiseDifferences = 1 << 22,
+    kDontAnimate = 1 << 23,
+    kTransferHex64 = 1 << 24,
+    kCharPropertyMask = 1 << 25,
+    kDontValidateUTF8 = 1 << 26,
+    kFixedBufferFlag = 1 << 27,
+    kDisallowSerializedPropertyModification = 1 << 28);
+
 //
 // 5.0
 //
@@ -36,6 +68,8 @@ DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
 template<Revision R, Variant V>
 struct TypeTreeNode
 {
+    using TransferMetaFlags = ::TransferMetaFlags<R, V>;
+
     int16_t m_Version = 1;
     uint8_t m_Level = 0;
     uint8_t m_IsArray = 0;
@@ -43,7 +77,7 @@ struct TypeTreeNode
     uint32_t m_NameStrOffset = 0;
     int32_t m_ByteSize = -1;
     int32_t m_Index = -1;
-    uint32_t m_MetaFlag = 0;
+    std::underlying_type_t<TransferMetaFlags> m_MetaFlag = TransferMetaFlags::kNoTransferFlags;
 };
 
 template<Revision R, Variant V>
@@ -155,6 +189,8 @@ public:
 
 DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1_0)
 {
+    using TransferMetaFlags = ::TransferMetaFlags<R, V>;
+
     int16_t m_Version = 1;
     uint8_t m_Level = 0;
     uint8_t m_TypeFlags = 0;
@@ -162,7 +198,7 @@ DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1_0)
     uint32_t m_NameStrOffset = 0;
     int32_t m_ByteSize = -1;
     int32_t m_Index = -1;
-    uint32_t m_MetaFlag = 0;
+    std::underlying_type_t<TransferMetaFlags> m_MetaFlag = TransferMetaFlags::kNoTransferFlags;
     uint64_t m_RefTypeHash = 0;
 
     enum ETypeFlags

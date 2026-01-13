@@ -40,11 +40,11 @@ struct DumpedTypeTreeRTTI
 
     enum Flags : uint32_t
     {
-        kRTTIFlagsIsAbstract = 1 << 0,
-        kRTTIFlagsIsSealed = 1 << 1,
-        kRTTIFlagsIsEditorOnly = 1 << 2,
-        kRTTIFlagsIsStripped = 1 << 3,
-        kRTTIFlagsIsDeprecated  = 1 << 4,
+        kRTTIFlagIsAbstract = 1 << 0,
+        kRTTIFlagIsSealed = 1 << 1,
+        kRTTIFlagIsEditorOnly = 1 << 2,
+        kRTTIFlagIsStripped = 1 << 3,
+        kRTTIFlagIsDeprecated  = 1 << 4,
     };
     std::underlying_type_t<Flags> Flags;
 
@@ -60,10 +60,10 @@ struct DumpedTypeTreeNode
 
     enum Flags : uint32_t
     {
-        kNodeFlagsIsArray = 1 << 0,
-        kNodeFlagsIsManagedReference = 1 << 1,
-        kNodeFlagsIsManagedReferenceRegistry = 1 << 2,
-        kNodeFlagsIsArrayOfRefs = 1 << 3,
+        kNodeFlagIsArray = 1 << 0,
+        kNodeFlagIsManagedReference = 1 << 1,
+        kNodeFlagIsManagedReferenceRegistry = 1 << 2,
+        kNodeFlagIsArrayOfRefs = 1 << 3,
     };
     std::underlying_type_t<Flags> Flags;
     int32_t ByteSize;
@@ -71,19 +71,87 @@ struct DumpedTypeTreeNode
 
     int16_t Version;
     uint8_t Level;
-    uint32_t MetaFlags;
+
+    enum MetaFlags : uint32_t
+    {
+        kNodeMetaFlagHideInEditor = 1 << 0,
+        // ?
+        // ?
+        // ?
+        kNodeMetaFlagNotEditable = 1 << 4,
+        kNodeMetaFlagReorderable = 1 << 5,
+        kNodeMetaFlagStrongPPtr = 1 << 6,
+        // ?
+        kNodeMetaFlagTreatIntegerValueAsBoolean = 1 << 8,
+        // ?
+        // ?
+        // ?
+        kNodeMetaFlagDebugProperty = 1 << 12,
+        // ?
+        kNodeMetaFlagAlignBytes = 1 << 14,
+        kNodeMetaFlagAnyChildUsesAlignBytes = 1 << 15,
+        // ?
+        // ?
+        // ?
+        kNodeMetaFlagIgnoreInMetaFiles = 1 << 19,
+        kNodeMetaFlagTransferAsArrayEntryNameInMetaFiles = 1 << 20,
+        kNodeMetaFlagTransferUsingFlowMappingStyle = 1 << 21,
+        kNodeMetaFlagGenerateBitwiseDifferences = 1 << 22,
+        kNodeMetaFlagDontAnimate = 1 << 23,
+        kNodeMetaFlagTransferHex64 = 1 << 24,
+        kNodeMetaFlagCharProperty = 1 << 25,
+        kNodeMetaFlagDontValidateUTF8 = 1 << 26,
+        kNodeMetaFlagFixedBuffer = 1 << 27,
+        kNodeMetaFlagDisallowSerializedPropertyModification = 1 << 28
+    };
+    std::underlying_type_t<MetaFlags> MetaFlags;
     uint64_t RefTypeHash;
+};
+
+enum DumpedTransferInstructionFlags : uint64_t
+{
+    kTransferFlagReadWriteFromSerializedFile = 1 << 0,
+    kTransferFlagAssetMetaDataOnly = 1 << 1,
+    kTransferFlagHandleDrivenProperties = 1 << 2,
+    kTransferFlagLoadAndUnloadAssetsDuringBuild = 1 << 3,
+    kTransferFlagSerializeDebugProperties = 1 << 4,
+    kTransferFlagIgnoreDebugPropertiesForIndex = 1 << 5,
+    kTransferFlagBuildPlayerOnlySerializeBuildProperties = 1 << 6,
+    kTransferFlagIsCloningObject = 1 << 7,
+    kTransferFlagSerializeGameRelease = 1 << 8,
+    kTransferFlagSwapEndianness = 1 << 9,
+    kTransferFlagResolveStreamedResourceSources = 1 << 10,
+    kTransferFlagDontReadObjectsFromDiskBeforeWriting = 1 << 11,
+    kTransferFlagSerializeMonoReload = 1 << 12,
+    kTransferFlagDontRequireAllMetaFlags = 1 << 13,
+    kTransferFlagSerializeForPrefabSystem = 1 << 14,
+    kTransferFlagSerializeForSlimPlayer = 1 << 15,
+    kTransferFlagLoadPrefabAsScene = 1 << 16,
+    kTransferFlagSerializeCopyPasteTransfer = 1 << 17,
+    kTransferFlagSkipSerializeToTempFile = 1 << 18,
+    kTransferFlagBuildResourceImage = 1 << 19,
+    kTransferFlagDontWriteUnityVersion = 1 << 20,
+    kTransferFlagSerializeEditorMinimalScene = 1 << 21,
+    kTransferFlagGenerateBakedPhysixMeshes = 1 << 22,
+    kTransferFlagThreadedSerialization = 1 << 23,
+    kTransferFlagIsBuiltinResourcesFile = 1 << 24,
+    kTransferFlagPerformUnloadDependencyTracking = 1 << 25,
+    kTransferFlagDisableWriteTypeTree = 1 << 26,
+    kTransferFlagAutoreplaceEditorWindow = 1 << 27,
+    kTransferFlagDontCreateMonoBehaviorScriptWrapper = 1 << 28,
+    kTransferFlagSerializeForInspector = 1 << 29,
+    kTransferFlagSerializedAssetBundleVersion = 1 << 30,
+    kTransferFlagAllowTextSerialization = 1 << 31,
+    kTransferFlagIgnoreSerializeReferenceMissingType = 1LL << 32,
+    kTransferFlagDontUpdateTransformRootOrderOnTypes = 1LL << 33,
+    kTransferFlagSerializingForDevelopmentBuild = 1LL << 34,
+    kTransferFlagSerializingFQN = 1LL << 35
 };
 
 struct DumpedTypeTree
 {
     DumpedTypeTreeRTTI RTTI;
-
-    enum TransferInstructionFlags : uint64_t
-    {
-        kTransferFlagSerializeGameRelease = 0x0100,
-    };
-    std::underlying_type_t<TransferInstructionFlags> TransferFlags;
+    std::underlying_type_t<DumpedTransferInstructionFlags> TransferFlags;
 
     std::vector<DumpedTypeTreeNode> Nodes;
 };
@@ -208,9 +276,11 @@ class DumpedTypeTreeWriter
     using TypeTreeShareableData = ::TypeTreeShareableData<R, V>;
     using TypeTreeNode = ::TypeTreeNode<R, V>;
     using TransferInstructionFlags = ::TransferInstructionFlags<R, V>;
+    using TransferMetaFlags = ::TransferMetaFlags<R, V>;
 
 #define IF_HAS_MEMBER(Var, MemberName) if constexpr (requires { (Var).MemberName; })
 #define IF_HAS_MEMBER_PTR(Var, MemberName) if constexpr (requires { (Var)->MemberName; })
+#define IF_HAS_ENUM_FLAG(Var, EnumName, Result, ResultEnumName) if ((Var) & (EnumName)) (Result) |= ResultEnumName
 
     static void ConvertRTTI(const RTTI* rtti, DumpedTypeTreeRTTI &dumpedRtti)
     {
@@ -224,27 +294,27 @@ class DumpedTypeTreeWriter
             dumpedRtti.BasePersistentTypeID = rtti->base->persistentTypeID;
 
         if (rtti->isAbstract)
-            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagsIsAbstract;
+            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsAbstract;
 
         if (rtti->isSealed)
-            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagsIsAbstract;
+            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsAbstract;
 
         IF_HAS_MEMBER_PTR(rtti, isDeprecated)
         {
             if (rtti->isDeprecated)
-                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagsIsDeprecated;
+                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsDeprecated;
         }
 
         IF_HAS_MEMBER_PTR(rtti, isEditorOnly)
         {
             if (rtti->isEditorOnly)
-                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagsIsEditorOnly;
+                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsEditorOnly;
         }
 
         IF_HAS_MEMBER_PTR(rtti, isStripped)
         {
             if (rtti->isStripped)
-                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagsIsStripped;
+                dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsStripped;
         }
 
         IF_HAS_MEMBER_PTR(rtti, derivedFromInfo)
@@ -287,27 +357,36 @@ class DumpedTypeTreeWriter
         dumpedNode.Level = node.m_Level;
         dumpedNode.Version = node.m_Version;
 
-        // TODO: Add proper parsing for these
-        dumpedNode.MetaFlags = node.m_MetaFlag;
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kHideInEditorMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagHideInEditor);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kNotEditableMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagNotEditable);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kReorderable, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagReorderable);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kStrongPPtrMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagStrongPPtr);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTreatIntegerValueAsBoolean, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTreatIntegerValueAsBoolean);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kDebugPropertyMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagDebugProperty);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAlignBytes);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAnyChildUsesAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAnyChildUsesAlignBytes);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kIgnoreInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagIgnoreInMetaFiles);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferAsArrayEntryNameInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferAsArrayEntryNameInMetaFiles);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferUsingFlowMappingStyle, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferUsingFlowMappingStyle);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kGenerateBitwiseDifferences, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagGenerateBitwiseDifferences);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kDontAnimate, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagDontAnimate);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferHex64, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferHex64);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kCharPropertyMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagCharProperty);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kDontValidateUTF8, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagDontValidateUTF8);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kFixedBufferFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagFixedBuffer);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kDisallowSerializedPropertyModification, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagDisallowSerializedPropertyModification);
 
         IF_HAS_MEMBER(node, m_IsArray)
         {
-            dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagsIsArray;
+            dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagIsArray;
         }
 
         IF_HAS_MEMBER(node, m_TypeFlags)
         {
-            if (node.m_TypeFlags & TypeTreeNode::kFlagIsArray)
-                dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagsIsArray;
-
-            if (node.m_TypeFlags & TypeTreeNode::kFlagIsManagedReference)
-                dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagsIsManagedReference;
-
-            if (node.m_TypeFlags & TypeTreeNode::kFlagIsManagedReferenceRegistry)
-                dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagsIsManagedReferenceRegistry;
-
-            if (node.m_TypeFlags & TypeTreeNode::kFlagIsArrayOfRefs)
-                dumpedNode.Flags |= DumpedTypeTreeNode::kNodeFlagsIsArrayOfRefs;
+            IF_HAS_ENUM_FLAG(node.m_TypeFlags, TypeTreeNode::kFlagIsArray, dumpedNode.Flags, DumpedTypeTreeNode::kNodeFlagIsArray);
+            IF_HAS_ENUM_FLAG(node.m_TypeFlags, TypeTreeNode::kFlagIsManagedReference, dumpedNode.Flags, DumpedTypeTreeNode::kNodeFlagIsManagedReference);
+            IF_HAS_ENUM_FLAG(node.m_TypeFlags, TypeTreeNode::kFlagIsManagedReferenceRegistry, dumpedNode.Flags, DumpedTypeTreeNode::kNodeFlagIsManagedReferenceRegistry);
+            IF_HAS_ENUM_FLAG(node.m_TypeFlags, TypeTreeNode::kFlagIsArrayOfRefs, dumpedNode.Flags, DumpedTypeTreeNode::kNodeFlagIsArrayOfRefs);
         }
 
         IF_HAS_MEMBER(node, m_RefTypeHash)
@@ -315,19 +394,25 @@ class DumpedTypeTreeWriter
             dumpedNode.RefTypeHash = node.m_RefTypeHash;
         }
     }
+
+    static void ConvertTransferInstructionFlags(const TransferInstructionFlags& flags, std::underlying_type_t<DumpedTransferInstructionFlags>& dumpedFlags)
+    {
+        // TODO: Add proper parsing for these
+        IF_HAS_ENUM_FLAG(flags, TransferInstructionFlags::kSerializeGameRelease, dumpedFlags, DumpedTransferInstructionFlags::kTransferFlagSerializeGameRelease);
+    }
+
 #undef IF_HAS_MEMBER
+#undef IF_HAS_MEMBER_PTR
+#undef IF_HAS_ENUM_FLAG
 
 public:
     void Add(const RTTI* rtti, const TypeTree& tree, const TransferInstructionFlags& flags, char const* commonStringBuffer)
     {
         DumpedTypeTree dumpedTree{};
+
         ConvertRTTI(rtti, dumpedTree.RTTI);
 
-        // TODO: Add proper parsing for these
-        if (flags & TransferInstructionFlags::kSerializeGameRelease)
-        {
-            dumpedTree.TransferFlags |= DumpedTypeTree::kTransferFlagSerializeGameRelease;
-        }
+        ConvertTransferInstructionFlags(flags, dumpedTree.TransferFlags);
 
         if (!rtti->isAbstract && rtti->factory)
         {
