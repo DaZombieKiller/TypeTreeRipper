@@ -42,12 +42,12 @@ DEFINE_ENUM(TransferMetaFlags, int32_t,
     kTreatIntegerValueAsBoolean = 1 << 8,
     // ?
     // ?
-    // ?
+    kSimpleEditorMask = 1 << 11,
     kDebugPropertyMask = 1 << 12,
     // ?
     kAlignBytesFlag = 1 << 14,
     kAnyChildUsesAlignBytesFlag = 1 << 15,
-    // ?
+    kIgnoreWithInspectorUndoMask = 1 << 16,
     // ?
     // ?
     kIgnoreInMetaFiles = 1 << 19,

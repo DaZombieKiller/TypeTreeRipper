@@ -85,12 +85,12 @@ struct DumpedTypeTreeNode
         kNodeMetaFlagTreatIntegerValueAsBoolean = 1 << 8,
         // ?
         // ?
-        // ?
+        kNodeMetaFlagSimpleEditor = 1 << 11,
         kNodeMetaFlagDebugProperty = 1 << 12,
         // ?
         kNodeMetaFlagAlignBytes = 1 << 14,
         kNodeMetaFlagAnyChildUsesAlignBytes = 1 << 15,
-        // ?
+        kNodeMetaFlagIgnoreWithInspectorUndo = 1 << 16,
         // ?
         // ?
         kNodeMetaFlagIgnoreInMetaFiles = 1 << 19,
@@ -362,8 +362,10 @@ class DumpedTypeTreeWriter
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kReorderable, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagReorderable);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kStrongPPtrMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagStrongPPtr);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTreatIntegerValueAsBoolean, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTreatIntegerValueAsBoolean);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kSimpleEditorMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagSimpleEditor);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kDebugPropertyMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagDebugProperty);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAlignBytes);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kIgnoreWithInspectorUndoMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagIgnoreWithInspectorUndo);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAnyChildUsesAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAnyChildUsesAlignBytes);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kIgnoreInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagIgnoreInMetaFiles);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferAsArrayEntryNameInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferAsArrayEntryNameInMetaFiles);
