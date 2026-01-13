@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "RTTI.hpp"
 #include "TypeTree.hpp"
+#undef max
 
 //
 // .ttbin binary layout:
@@ -32,6 +33,8 @@ struct DumpedTypeTreeHeader
 
 struct DumpedTypeTreeRTTI
 {
+    static constexpr auto kInvalid = std::numeric_limits<uint32_t>::max();
+
     std::string ClassName;
     std::string ClassNamespace;
     std::string Module;
@@ -48,9 +51,9 @@ struct DumpedTypeTreeRTTI
     };
     std::underlying_type_t<Flags> Flags;
 
-    uint32_t BasePersistentTypeID;
-    uint32_t DerivedFromTypeIndex;
-    uint32_t DerivedFromDescendantCount;
+    uint32_t BasePersistentTypeID = kInvalid;
+    uint32_t DerivedFromTypeIndex = kInvalid;
+    uint32_t DerivedFromDescendantCount = kInvalid;
 };
 
 struct DumpedTypeTreeNode
