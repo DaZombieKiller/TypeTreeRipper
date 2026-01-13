@@ -139,7 +139,22 @@ RevisionVersion ParseVersionString(const StringType &value)
     const auto minor = static_cast<uint8_t>(std::stoi(versionComponent));
 
     std::getline(versionParser, versionComponent, Delimiter);
-    const auto patch = static_cast<uint8_t>(std::stoi(versionComponent));
+
+    // As the passed in version might have a suffix, like 2023.5.0f1, we need to find where the patch number ends
+    // This parses the "0f1" part of the version
+
+    const auto patchEndIndex = [versionComponent]
+    {
+        for (size_t i = 0; i < versionComponent.size(); i++)
+        {
+            if (versionComponent[i] - '0' > 9)
+                return i;
+        }
+
+        return versionComponent.size();
+    }();
+
+    const auto patch = static_cast<uint8_t>(std::stoi(versionComponent.substr(0, patchEndIndex)));
 
     return std::make_tuple(major, minor, patch);
 }
