@@ -36,14 +36,14 @@ DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
 template<Revision R, Variant V>
 struct TypeTreeNode
 {
-    int16_t m_Version;
-    uint8_t m_Level;
-    uint8_t m_IsArray;
-    uint32_t m_TypeStrOffset;
-    uint32_t m_NameStrOffset;
-    int32_t m_ByteSize;
-    int32_t m_Index;
-    uint32_t m_MetaFlag;
+    int16_t m_Version = 1;
+    uint8_t m_Level = 0;
+    uint8_t m_IsArray = 0;
+    uint32_t m_TypeStrOffset = 0;
+    uint32_t m_NameStrOffset = 0;
+    int32_t m_ByteSize = -1;
+    int32_t m_Index = -1;
+    uint32_t m_MetaFlag = 0;
 };
 
 template<Revision R, Variant V>
@@ -56,8 +56,7 @@ public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label)
         : m_Nodes(label, 1), m_StringBuffer(label), m_ByteOffsets(label)
     {
-        m_Nodes[0].m_Index = -1;
-        m_Nodes[0].m_ByteSize = -1;
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
     }
 
     TypeTreeShareableData<R, V> *GetData() const
@@ -156,13 +155,13 @@ public:
 
 DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1_0)
 {
-    int16_t m_Version = 0;
+    int16_t m_Version = 1;
     uint8_t m_Level = 0;
     uint8_t m_TypeFlags = 0;
     uint32_t m_TypeStrOffset = 0;
     uint32_t m_NameStrOffset = 0;
-    int32_t m_ByteSize = 0;
-    int32_t m_Index = 0;
+    int32_t m_ByteSize = -1;
+    int32_t m_Index = -1;
     uint32_t m_MetaFlag = 0;
     uint64_t m_RefTypeHash = 0;
 
@@ -208,8 +207,7 @@ public:
         m_ByteOffsets(label),
         m_MemLabel(label)
     {
-        m_Nodes[0].m_Version = 1;
-        m_Nodes[0].m_ByteSize = -1;
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
@@ -283,8 +281,7 @@ public:
         m_ByteOffsets(label),
         m_MemLabel(label)
     {
-        m_Nodes[0].m_Version = 1;
-        m_Nodes[0].m_ByteSize = -1;
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
         m_Levels[0] = 0;
         m_NextIndex[0] = -1;
     }
