@@ -30,7 +30,7 @@ public:
         if (CachedSections.empty())
         {
             struct ElfInfo {
-                std::span<const Elf64_Phdr> Sections;
+                std::span<const ElfW(Phdr)> Sections;
                 uintptr_t BaseAddress;
             };
             ElfInfo libraryInfo{};
@@ -168,9 +168,9 @@ namespace
     {
         // Older Unity versions unfortunately don't have the name log line, so we use
         // one from the IL2CPP init instead.
-        if (msg.starts_with("Product Name:")
+        if (false /* msg.starts_with("Product Name:") */
             || msg.starts_with("Java VM not initialized")
-            /* || msg.starts_with("Locale ") */)
+            || msg.starts_with("Locale "))
         {
             ProcessProductNameMessage(msg);
         }

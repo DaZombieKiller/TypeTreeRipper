@@ -144,7 +144,7 @@ enum DumpedTransferInstructionFlags : uint64_t
     kTransferFlagDontCreateMonoBehaviorScriptWrapper = 1 << 28,
     kTransferFlagSerializeForInspector = 1 << 29,
     kTransferFlagSerializedAssetBundleVersion = 1 << 30,
-    kTransferFlagAllowTextSerialization = 1 << 31,
+    kTransferFlagAllowTextSerialization = 1LL << 31,
     kTransferFlagIgnoreSerializeReferenceMissingType = 1LL << 32,
     kTransferFlagDontUpdateTransformRootOrderOnTypes = 1LL << 33,
     kTransferFlagSerializingForDevelopmentBuild = 1LL << 34,
