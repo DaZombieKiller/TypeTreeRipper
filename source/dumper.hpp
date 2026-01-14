@@ -2,7 +2,6 @@
 #include "common.hpp"
 
 #include <array>
-#include <fstream>
 #include <span>
 #include <functional>
 #include <algorithm>

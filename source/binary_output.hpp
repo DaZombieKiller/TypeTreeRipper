@@ -300,7 +300,7 @@ class DumpedTypeTreeWriter
             dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsAbstract;
 
         if (rtti->isSealed)
-            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsAbstract;
+            dumpedRtti.Flags |= DumpedTypeTreeRTTI::kRTTIFlagIsSealed;
 
         IF_HAS_MEMBER_PTR(rtti, isDeprecated)
         {
