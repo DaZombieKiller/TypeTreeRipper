@@ -51,7 +51,7 @@ DEFINE_ENUM(TransferMetaFlags, int32_t,
     kAnyChildUsesAlignBytesFlag = 1 << 15,
     kIgnoreWithInspectorUndoMask = 1 << 16,
     // ?
-    // ?
+    kEditorDisplaysCharacterMap = 1 << 18,
     kIgnoreInMetaFiles = 1 << 19,
     kTransferAsArrayEntryNameInMetaFiles = 1 << 20,
     kTransferUsingFlowMappingStyle = 1 << 21,

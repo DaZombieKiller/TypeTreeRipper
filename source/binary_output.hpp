@@ -95,7 +95,7 @@ struct DumpedTypeTreeNode
         kNodeMetaFlagAnyChildUsesAlignBytes = 1 << 15,
         kNodeMetaFlagIgnoreWithInspectorUndo = 1 << 16,
         // ?
-        // ?
+        kNodeMetaFlagEditorDisplaysCharacterMap = 1 << 18,
         kNodeMetaFlagIgnoreInMetaFiles = 1 << 19,
         kNodeMetaFlagTransferAsArrayEntryNameInMetaFiles = 1 << 20,
         kNodeMetaFlagTransferUsingFlowMappingStyle = 1 << 21,
@@ -370,6 +370,7 @@ class DumpedTypeTreeWriter
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAlignBytes);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kIgnoreWithInspectorUndoMask, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagIgnoreWithInspectorUndo);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kAnyChildUsesAlignBytesFlag, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagAnyChildUsesAlignBytes);
+        IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kEditorDisplaysCharacterMap, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagEditorDisplaysCharacterMap);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kIgnoreInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagIgnoreInMetaFiles);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferAsArrayEntryNameInMetaFiles, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferAsArrayEntryNameInMetaFiles);
         IF_HAS_ENUM_FLAG(node.m_MetaFlag, TransferMetaFlags::kTransferUsingFlowMappingStyle, dumpedNode.MetaFlags, DumpedTypeTreeNode::kNodeMetaFlagTransferUsingFlowMappingStyle);
