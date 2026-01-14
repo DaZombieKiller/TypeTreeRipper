@@ -17,13 +17,13 @@ public static class StructDumpTextOutput
 
         foreach (var type in binary.TypeTrees.OrderBy(x => x.RTTI.PersistentTypeId))
         {
-            writer.Write($"\n // classID{{{type.RTTI.PersistentTypeId}}}: ");
+            writer.Write($"\n// classID{{{type.RTTI.PersistentTypeId}}}: ");
 
             var inheritanceCurrentType = type;
             while (true)
             {
                 writer.Write(inheritanceCurrentType.RTTI.ClassName);
-                if (type.RTTI.BasePersistentTypeId == -1)
+                if (inheritanceCurrentType.RTTI.BasePersistentTypeId == -1)
                     break;
 
                 writer.Write(" <- ");
@@ -36,13 +36,13 @@ public static class StructDumpTextOutput
             while (abstractCurrentType.RTTI.Flags.HasFlag(DumpedTypeTreeRTTIFlags.IsAbstract))
             {
                 writer.WriteLine($"// {abstractCurrentType.RTTI.ClassName} is abstract");
-                if (type.RTTI.BasePersistentTypeId == -1)
+                if (abstractCurrentType.RTTI.BasePersistentTypeId == -1)
                     break;
 
-                abstractCurrentType = typesByTypeId[inheritanceCurrentType.RTTI.BasePersistentTypeId];
+                abstractCurrentType = typesByTypeId[abstractCurrentType.RTTI.BasePersistentTypeId];
             }
 
-            foreach (var node in type.Nodes)
+            foreach (var node in abstractCurrentType.Nodes)
                 Output(node, writer);
         }
     }
@@ -52,7 +52,7 @@ public static class StructDumpTextOutput
         for (int i = 0; i < node.Level; i++)
             writer.Write("\t");
 
-        writer.Write($"{node.Type} {node.Name} " +
+        writer.WriteLine($"{node.Type} {node.Name} " +
                      $"// ByteSize{{{node.ByteSize:x}}}, " +
                      $"Index{{{node.Index:x}}}, " +
                      $"Version{{{node.Version:x}}}, " +

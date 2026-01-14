@@ -22,7 +22,7 @@ public sealed class Program
 
         app.Configure(config =>
         {
-            config.AddCommand<StructDumpCommand>("struct-dump").WithDescription("Converts a .ttbin to a StructDump JSON.");
+            config.AddCommand<StructDumpCommand>("struct-dump").WithDescription("Converts a .ttbin to a StructDump file.");
             config.AddCommand<TpkCommand>("tpk").WithDescription("Converts a folder of versioned .ttbin files to a TPK.");
             config.PropagateExceptions();
         });
