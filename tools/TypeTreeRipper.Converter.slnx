@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TypeTreeRipper.BinaryFormat/TypeTreeRipper.BinaryFormat.csproj" />
+  <Project Path="TypeTreeRipper.Converter/TypeTreeRipper.Converter.csproj" />
+</Solution>

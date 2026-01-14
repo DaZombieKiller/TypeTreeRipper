@@ -4,3 +4,6 @@ artifacts/
 compile_commands.json
 .cache/
 .vscode/
+obj
+bin
+*.csproj.user
