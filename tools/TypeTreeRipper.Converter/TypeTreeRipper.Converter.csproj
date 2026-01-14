@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssetRipper.HashAlgorithms" Version="1.0.0" />
     <PackageReference Include="AssetRipper.Tpk" Version="1.1.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="1.0.0-alpha.0.12" />
   </ItemGroup>
