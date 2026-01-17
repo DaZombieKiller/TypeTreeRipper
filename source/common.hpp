@@ -206,7 +206,7 @@ inline RevisionVersion RevisionToVersion(const Revision revision)
     constexpr std::array kRevisionVersions = {
 #define DEFINE_REVISION_VERSION_TUPLE_ENTRY(major, minor, patch) std::make_tuple<uint16_t, uint8_t, uint8_t>(major, minor, patch), 
         FOR_EACH_REVISION(DEFINE_REVISION_VERSION_TUPLE_ENTRY)
-#undef DEFINE_REVISION_VERSION_ENTRY
+#undef DEFINE_REVISION_VERSION_TUPLE_ENTRY
     };
 
     return kRevisionVersions[std::to_underlying(revision)];
