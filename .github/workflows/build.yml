@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - preset: RelWithDebInfo
+            os: windows-latest
+          - preset: RelWithDebInfoAndroidARM64
+            os: ubuntu-latest
+          - preset: RelWithDebInfoAndroidX8664
+            os: ubuntu-latest
+          - preset: RelWithDebInfoAndroidARM32
+            os: ubuntu-latest
+          - preset: RelWithDebInfoAndroidX86
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup VS Shell
+      if: contains(matrix.os, 'windows')
+      uses: seanmiddleditch/gha-setup-vsdevenv@master
+
+    - name: Setup Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Setup NDK
+      if: contains(matrix.preset, 'Android')
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r29
+
+    - name: Configure
+      run: cmake --preset ${{ matrix.preset }}
+
+    - name: Build
+      run: cmake --build --preset ${{ matrix.preset }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.preset }}
+        path: artifacts/${{ matrix.preset }}/*
