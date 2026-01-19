@@ -15,7 +15,7 @@ struct AllocationRootReference;
 template<Revision R, Variant V>
 struct AllocationRootWithSalt;
 
-DECLARE_REVISION(AllocationRootWithSalt, Revision::V2023_1);
+DECLARE_REVISION(AllocationRootWithSalt, Revision::V2023_1_0);
 
 template<Revision R, Variant V>
 struct AllocationRootWithSalt
@@ -24,7 +24,7 @@ struct AllocationRootWithSalt
     uint32_t m_RootReferenceIndex = 0;
 };
 
-DEFINE_REVISION(struct, AllocationRootWithSalt, Revision::V2023_1)
+DEFINE_REVISION(struct, AllocationRootWithSalt, Revision::V2023_1_0)
 {
     uint16_t m_Salt = 0;
     uint32_t m_RootReferenceIndex = 0;
@@ -37,9 +37,9 @@ DEFINE_REVISION(struct, AllocationRootWithSalt, Revision::V2023_1)
 template<Revision R, Variant V>
 struct MemLabelId;
 
-DECLARE_REVISION_VARIANT(MemLabelId, Revision::V2017_1, Variant::RuntimeDev);
-DECLARE_REVISION_VARIANT(MemLabelId, Revision::V2022_2, Variant::RuntimeDev);
-DECLARE_REVISION(MemLabelId, Revision::V2023_1);
+DECLARE_REVISION_VARIANT(MemLabelId, Revision::V2017_1_0, Variant::RuntimeDev);
+DECLARE_REVISION_VARIANT(MemLabelId, Revision::V2022_2_0, Variant::RuntimeDev);
+DECLARE_REVISION(MemLabelId, Revision::V2023_1_0);
 
 template<Revision R, Variant V>
 struct MemLabelId
@@ -47,7 +47,7 @@ struct MemLabelId
     uint32_t identifier = 0;
 };
 
-DEFINE_REVISION(struct, MemLabelId, Revision::V2023_1)
+DEFINE_REVISION(struct, MemLabelId, Revision::V2023_1_0)
 {
     uint16_t identifier = 0;
 };
@@ -59,19 +59,19 @@ struct MemLabelId<R, Variant::RuntimeDev>
     AllocationRootReference *rootReference = nullptr;
 };
 
-DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2017_1, Variant::RuntimeDev)
+DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2017_1_0, Variant::RuntimeDev)
 {
     AllocationRootWithSalt<R, Variant::RuntimeDev> m_RootReferenceWithSalt;
     uint32_t identifier = 0;
 };
 
-DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2022_2, Variant::RuntimeDev)
+DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2022_2_0, Variant::RuntimeDev)
 {
     uint32_t identifier = 0;
     AllocationRootWithSalt<R, Variant::RuntimeDev> m_RootReferenceWithSalt;
 };
 
-DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2023_1, Variant::RuntimeDev)
+DEFINE_REVISION_VARIANT(struct, MemLabelId, Revision::V2023_1_0, Variant::RuntimeDev)
 {
     uint16_t identifier = 0;
     uint16_t salt = 0;

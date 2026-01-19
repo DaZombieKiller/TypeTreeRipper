@@ -16,18 +16,52 @@ class TypeTreeIterator;
 template<Revision R, Variant V>
 struct TypeTreeShareableData;
 
-DECLARE_REVISION(TypeTree, Revision::V2019_1);
-DECLARE_REVISION(TypeTree, Revision::V2019_3);
-DECLARE_REVISION(TypeTreeNode, Revision::V2019_1);
-DECLARE_REVISION(TypeTreeIterator, Revision::V2019_1);
-DECLARE_REVISION(TypeTreeShareableData, Revision::V2019_2);
-DECLARE_REVISION(TypeTreeShareableData, Revision::V2022_3);
+DECLARE_REVISION(TypeTree, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTree, Revision::V2019_3_0);
+DECLARE_REVISION(TypeTreeNode, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTreeIterator, Revision::V2019_1_0);
+DECLARE_REVISION(TypeTreeShareableData, Revision::V2019_2_0);
+DECLARE_REVISION(TypeTreeShareableData, Revision::V2022_3_0);
 
 DEFINE_ENUM(TransferInstructionFlags, int32_t,
+    kNone = 0,
     kSerializeGameRelease = 0x0100);
 
-DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1,
+DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1_0,
+    kNone = 0,
     kSerializeGameRelease = 0x0100);
+
+DEFINE_ENUM(TransferMetaFlags, int32_t,
+    kNoTransferFlags = 0,
+    kHideInEditorMask = 1 << 0,
+    // ?
+    // ?
+    // ?
+    kNotEditableMask = 1 << 4,
+    kReorderable = 1 << 5,
+    kStrongPPtrMask = 1 << 6,
+    // ?
+    kTreatIntegerValueAsBoolean = 1 << 8,
+    // ?
+    // ?
+    kSimpleEditorMask = 1 << 11,
+    kDebugPropertyMask = 1 << 12,
+    // ?
+    kAlignBytesFlag = 1 << 14,
+    kAnyChildUsesAlignBytesFlag = 1 << 15,
+    kIgnoreWithInspectorUndoMask = 1 << 16,
+    // ?
+    kEditorDisplaysCharacterMap = 1 << 18,
+    kIgnoreInMetaFiles = 1 << 19,
+    kTransferAsArrayEntryNameInMetaFiles = 1 << 20,
+    kTransferUsingFlowMappingStyle = 1 << 21,
+    kGenerateBitwiseDifferences = 1 << 22,
+    kDontAnimate = 1 << 23,
+    kTransferHex64 = 1 << 24,
+    kCharPropertyMask = 1 << 25,
+    kDontValidateUTF8 = 1 << 26,
+    kFixedBufferFlag = 1 << 27,
+    kDisallowSerializedPropertyModification = 1 << 28);
 
 //
 // 5.0
@@ -36,30 +70,44 @@ DEFINE_ENUM_REVISION(TransferInstructionFlags, uint64_t, Revision::V2021_1,
 template<Revision R, Variant V>
 struct TypeTreeNode
 {
-    int16_t m_Version;
-    uint8_t m_Level;
-    uint8_t m_IsArray;
-    uint32_t m_TypeStrOffset;
-    uint32_t m_NameStrOffset;
-    int32_t m_ByteSize;
-    int32_t m_Index;
-    uint32_t m_MetaFlag;
+    using TransferMetaFlags = ::TransferMetaFlags<R, V>;
+
+    int16_t m_Version = 1;
+    uint8_t m_Level = 0;
+    uint8_t m_IsArray = 0;
+    uint32_t m_TypeStrOffset = 0;
+    uint32_t m_NameStrOffset = 0;
+    int32_t m_ByteSize = -1;
+    int32_t m_Index = -1;
+    std::underlying_type_t<TransferMetaFlags> m_MetaFlag = TransferMetaFlags::kNoTransferFlags;
 };
 
 template<Revision R, Variant V>
 class TypeTree
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
 public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label)
+        : m_Nodes(label, 1), m_StringBuffer(label), m_ByteOffsets(label)
     {
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
     }
 
     TypeTreeShareableData<R, V> *GetData() const
     {
         return nullptr;
+    }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return m_Nodes;
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return m_StringBuffer;
     }
 };
 
@@ -83,38 +131,38 @@ public:
 template<Revision R, Variant V>
 class TypeTreeShareableData
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
-    std::atomic<int> m_RefCount;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
+    std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> const &m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        m_Nodes[0].m_Version = 1;
+        m_Nodes[0].m_ByteSize = -1;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
     {
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
     }
-
-    void Retain()
-    {
-        m_RefCount++;
-    }
 };
 
-DEFINE_REVISION(class, TypeTree, Revision::V2019_1)
+DEFINE_REVISION(class, TypeTree, Revision::V2019_1_0)
 {
     TypeTreeShareableData<R, V> *m_Data;
     TypeTreeShareableData<R, V> m_PrivateData;
@@ -123,25 +171,36 @@ public:
         m_Data(sharedType),
         m_PrivateData(label)
     {
-        sharedType->Retain();
     }
 
     TypeTreeShareableData<R, V> *GetData() const
     {
         return m_Data;
     }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return GetData()->Nodes();
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return GetData()->StringsBuffer();
+    }
 };
 
-DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1)
+DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1_0)
 {
-    int16_t m_Version = 0;
+    using TransferMetaFlags = ::TransferMetaFlags<R, V>;
+
+    int16_t m_Version = 1;
     uint8_t m_Level = 0;
     uint8_t m_TypeFlags = 0;
     uint32_t m_TypeStrOffset = 0;
     uint32_t m_NameStrOffset = 0;
-    int32_t m_ByteSize = 0;
-    int32_t m_Index = 0;
-    uint32_t m_MetaFlag = 0;
+    int32_t m_ByteSize = -1;
+    int32_t m_Index = -1;
+    std::underlying_type_t<TransferMetaFlags> m_MetaFlag = TransferMetaFlags::kNoTransferFlags;
     uint64_t m_RefTypeHash = 0;
 
     enum ETypeFlags
@@ -153,7 +212,7 @@ DEFINE_REVISION(struct, TypeTreeNode, Revision::V2019_1)
     };
 };
 
-DEFINE_REVISION(class, TypeTreeIterator, Revision::V2019_1)
+DEFINE_REVISION(class, TypeTreeIterator, Revision::V2019_1_0)
 {
     TypeTree<R, V> const *m_LinkedTypeTree;
     TypeTreeShareableData<R, V> const *m_TypeTreeData;
@@ -171,18 +230,22 @@ public:
 // 2019.2
 //
 
-DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2)
+DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2019_2_0)
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
     TransferInstructionFlags<R, V> m_FlagsAtGeneration = {};
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> const &m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
@@ -190,19 +253,14 @@ public:
         m_FlagsAtGeneration = options;
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
-    }
-
-    void Retain()
-    {
-        m_RefCount++;
     }
 };
 
@@ -210,7 +268,7 @@ public:
 // 2019.3
 //
 
-DEFINE_REVISION(class, TypeTree, Revision::V2019_3)
+DEFINE_REVISION(class, TypeTree, Revision::V2019_3_0)
 {
     class Pool;
     TypeTreeShareableData<R, V> *m_Data;
@@ -220,12 +278,21 @@ public:
     TypeTree(TypeTreeShareableData<R, V> *sharedType, MemLabelId<R, V> const &label) :
         m_Data(sharedType)
     {
-        sharedType->Retain();
     }
 
     TypeTreeShareableData<R, V> *GetData() const
     {
         return m_Data;
+    }
+
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
+    {
+        return GetData()->Nodes();
+    }
+
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
+    {
+        return GetData()->StringsBuffer();
     }
 };
 
@@ -233,20 +300,28 @@ public:
 // 2022.3
 //
 
-DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3)
+DEFINE_REVISION(class, TypeTreeShareableData, Revision::V2022_3_0)
 {
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> m_Nodes;
-    dynamic_array<R, V>::type<uint8_t> m_Levels;
-    dynamic_array<R, V>::type<int32_t> m_NextIndex;
-    dynamic_array<R, V>::type<char> m_StringBuffer;
-    dynamic_array<R, V>::type<uint32_t> m_ByteOffsets;
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> m_Nodes;
+    dynamic_array<R, V>::template type<uint8_t> m_Levels;
+    dynamic_array<R, V>::template type<int32_t> m_NextIndex;
+    dynamic_array<R, V>::template type<char> m_StringBuffer;
+    dynamic_array<R, V>::template type<uint32_t> m_ByteOffsets;
     TransferInstructionFlags<R, V> m_FlagsAtGeneration = {};
     std::atomic<int> m_RefCount = 1;
     MemLabelId<R, V> m_MemLabel;
 public:
-    TypeTreeShareableData(MemLabelId<R, V> const &label) :
+    explicit TypeTreeShareableData(MemLabelId<R, V> const &label) :
+        m_Nodes(label, 1),
+        m_Levels(label, 1),
+        m_NextIndex(label, 1),
+        m_StringBuffer(label),
+        m_ByteOffsets(label),
         m_MemLabel(label)
     {
+        new(&m_Nodes[0]) TypeTreeNode<R, V>;
+        m_Levels[0] = 0;
+        m_NextIndex[0] = -1;
     }
 
     void SetGenerationFlags(TransferInstructionFlags<R, V> options)
@@ -254,18 +329,13 @@ public:
         m_FlagsAtGeneration = options;
     }
 
-    dynamic_array<R, V>::type<TypeTreeNode<R, V>> const &Nodes() const
+    dynamic_array<R, V>::template type<TypeTreeNode<R, V>> const &Nodes() const
     {
         return m_Nodes;
     }
 
-    dynamic_array<R, V>::type<char> const &StringsBuffer() const
+    dynamic_array<R, V>::template type<char> const &StringsBuffer() const
     {
         return m_StringBuffer;
-    }
-
-    void Retain()
-    {
-        m_RefCount++;
     }
 };

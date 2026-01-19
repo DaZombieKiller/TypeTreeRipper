@@ -6,7 +6,7 @@
 template<Revision R, Variant V>
 class GenerateTypeTreeTransfer;
 
-DECLARE_REVISION(GenerateTypeTreeTransfer, Revision::V5_0);
+DECLARE_REVISION(GenerateTypeTreeTransfer, Revision::V5_0_0);
 
 //
 // 4.x
@@ -43,7 +43,7 @@ public:
 // 5.0 to current
 //
 
-DEFINE_REVISION(class, GenerateTypeTreeTransfer, Revision::V5_0) : public TransferBase<R, V>
+DEFINE_REVISION(class, GenerateTypeTreeTransfer, Revision::V5_0_0) : public TransferBase<R, V>
 {
     TypeTree<R, V> &m_TypeTree;
     TypeTreeIterator<R, V> m_ActiveFather;
@@ -58,7 +58,7 @@ DEFINE_REVISION(class, GenerateTypeTreeTransfer, Revision::V5_0) : public Transf
 public:
     GenerateTypeTreeTransfer(TypeTree<R, V> &t, TransferInstructionFlags<R, V> options, void *objectPtr, int32_t objectDataSize) :
         m_TypeTree(t),
-        m_ActiveFather(&t, t.GetData(), 0),
+        m_ActiveFather(nullptr, nullptr, 0),
         m_ObjectPtr(static_cast<char *>(objectPtr)),
         m_ObjectSize(objectDataSize)
     {

@@ -1,43 +1,218 @@
 #pragma once
+#include <array>
+#include <optional>
+#include <sstream>
 #include <utility>
+
+#define FOR_EACH_VARIANT(X) \
+    X(Editor) \
+    X(Runtime) \
+    X(RuntimeDev)
 
 enum class Variant
 {
-    Editor,
-    Runtime,
-    RuntimeDev,
+#define DEFINE_VARIANT_ENUM_ENTRY(Name) Name,
+    FOR_EACH_VARIANT(DEFINE_VARIANT_ENUM_ENTRY)
+#undef DEFINE_VARIANT_ENUM_ENTRY
+
+    Count
 };
+
+template<typename StringViewType>
+    requires std::convertible_to<StringViewType, std::string_view> || std::convertible_to<StringViewType, std::wstring_view>
+std::optional<Variant> VariantStringToVariant(const StringViewType name)
+{
+    const auto convertString = [name](const auto names) -> std::optional<Variant>
+    {
+        for (const auto &[variantName, variant] : names)
+        {
+            if (name == variantName)
+            {
+                return variant;
+            }
+        }
+
+        return std::nullopt;
+    };
+
+    if constexpr (std::convertible_to<StringViewType, std::string_view>)
+    {
+        constexpr std::array kVariantNames = {
+#define DEFINE_VARIANT_NAME_A_ENTRY(Name) std::make_tuple(#Name, Variant::Name),  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_A_ENTRY)
+#undef DEFINE_VARIANT_NAME_A_ENTRY
+        };
+
+        return convertString(kVariantNames);
+    }
+    else
+    {
+        constexpr std::array kVariantNames = {
+#define DEFINE_VARIANT_NAME_W_ENTRY(Name) std::make_tuple(L""#Name, Variant::Name),  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_NAME_W_ENTRY)
+#undef DEFINE_VARIANT_NAME_W_ENTRY
+        };
+
+        return convertString(kVariantNames);
+    }
+}
+
+inline std::optional<Variant> ExecutableNameToVariant(const std::string_view name)
+{
+    constexpr std::array kExecutableVariants = {
+        std::make_tuple("Unity.exe", Variant::Editor),
+        std::make_tuple("Unity.com", Variant::Editor),
+    };
+
+    for (const auto& [executableName, variant] : kExecutableVariants)
+    {
+        if (name == executableName)
+        {
+            return variant;
+        }
+    }
+
+    return std::nullopt;
+}
+
+inline std::string_view VariantToString(const Variant variant)
+{
+    constexpr std::array kVariantNames = {
+#define DEFINE_VARIANT_STRING_ENTRY(Name) #Name,  
+            FOR_EACH_VARIANT(DEFINE_VARIANT_STRING_ENTRY)
+#undef DEFINE_VARIANT_STRING_ENTRY
+    };
+
+    return kVariantNames[std::to_underlying(variant)];
+}
+
+#undef FOR_EACH_VARIANT
+
+#define FOR_EACH_REVISION(X) \
+    X(0, 0, 0) \
+    X(5, 0, 0) \
+    X(5, 1, 0) \
+    X(5, 2, 0) \
+    X(5, 4, 0) \
+    X(5, 5, 0) \
+    X(2017, 1, 0) \
+    X(2017, 3, 0) \
+    X(2017, 4, 0) \
+    X(2017, 4, 18) \
+    X(2017, 4, 30) \
+    X(2018, 2, 0) \
+    X(2018, 3, 0) \
+    X(2019, 1, 0) \
+    X(2019, 2, 0) \
+    X(2019, 3, 0) \
+    X(2019, 4, 0) \
+    X(2019, 4, 34) \
+    X(2019, 4, 40) \
+    X(2021, 1, 0) \
+    X(2021, 3, 0) \
+    X(2022, 2, 0) \
+    X(2022, 3, 0) \
+    X(2023, 1, 0)
 
 enum class Revision
 {
-    V0,
-    V3_0,
-    V3_4,
-    V3_5,
-    V4_0,
-    V5_0,
-    V5_1,
-    V5_2,
-    V5_3,
-    V5_4,
-    V5_5,
-    V2017_1,
-    V2017_3,
-    V2018_2,
-    V2018_3,
-    V2019_1,
-    V2019_2,
-    V2019_3,
-    V2019_4,
-    V2020_1,
-    V2021_1,
-    V2022_1,
-    V2022_2,
-    V2022_3,
-    V2023_1,
-    V6000_0,
+#define DEFINE_REVISION_ENUM_ENTRY(major, minor, patch) V##major##_##minor##_##patch,
+    FOR_EACH_REVISION(DEFINE_REVISION_ENUM_ENTRY)
+#undef DEFINE_REVISION_ENUM_ENTRY
+
     Count,
 };
+
+using RevisionVersion = std::tuple<uint16_t, uint8_t, uint8_t>;
+
+template <typename StringType, typename StringStreamType, auto Delimiter>
+RevisionVersion ParseVersionString(const StringType &value)
+{
+    // spanstream doesn't exist in the android ndk :(
+    StringStreamType versionParser(value);
+
+    StringType versionComponent;
+    std::getline(versionParser, versionComponent, Delimiter);
+    const auto major = static_cast<uint16_t>(std::stoi(versionComponent));
+
+    std::getline(versionParser, versionComponent, Delimiter);
+    const auto minor = static_cast<uint8_t>(std::stoi(versionComponent));
+
+    std::getline(versionParser, versionComponent, Delimiter);
+
+    // As the passed in version might have a suffix, like 2023.5.0f1, we need to find where the patch number ends
+    // This parses the "0f1" part of the version
+
+    const auto patchEndIndex = [versionComponent]
+    {
+        for (size_t i = 0; i < versionComponent.size(); i++)
+        {
+            if (versionComponent[i] - '0' > 9)
+                return i;
+        }
+
+        return versionComponent.size();
+    }();
+
+    const auto patch = static_cast<uint8_t>(std::stoi(versionComponent.substr(0, patchEndIndex)));
+
+    return std::make_tuple(major, minor, patch);
+}
+
+inline std::optional<Revision> VersionToRevision(const uint16_t major, const uint8_t minor, const uint8_t patch)
+{
+    constexpr std::array kRevisionVersions = {
+#define DEFINE_REVISION_VERSION_ENTRY(major, minor, patch) std::make_tuple(major, minor, patch, Revision::V##major##_##minor##_##patch), 
+        FOR_EACH_REVISION(DEFINE_REVISION_VERSION_ENTRY)
+#undef DEFINE_REVISION_VERSION_ENTRY
+    };
+
+    std::optional<Revision> versionRevision;
+
+    for (const auto &[revisionMajor, revisionMinor, revisionPatch, revision] : kRevisionVersions)
+    {
+        if (major > revisionMajor
+            || (major == revisionMajor && (minor > revisionMinor
+                || (minor == revisionMinor && patch >= revisionPatch))))
+        {
+            versionRevision = revision;
+        }
+    }
+
+    return versionRevision;
+}
+
+template<typename StringType>
+    requires std::convertible_to<StringType, std::string> || std::convertible_to<StringType, std::wstring>
+std::optional<Revision> VersionStringToRevision(const StringType& value)
+{
+    RevisionVersion versionComponents;
+    
+    if constexpr (std::convertible_to<StringType, std::string>)
+    {
+        versionComponents = ParseVersionString<std::string, std::istringstream, '.'>(value);
+    }
+    else
+    {
+        versionComponents = ParseVersionString<std::wstring, std::basic_istringstream<wchar_t>, L'.'>(value);
+    }
+
+    const auto& [major, minor, patch] = versionComponents;
+    return VersionToRevision(major, minor, patch);
+}
+
+inline RevisionVersion RevisionToVersion(const Revision revision)
+{
+    constexpr std::array kRevisionVersions = {
+#define DEFINE_REVISION_VERSION_TUPLE_ENTRY(major, minor, patch) std::make_tuple<uint16_t, uint8_t, uint8_t>(major, minor, patch), 
+        FOR_EACH_REVISION(DEFINE_REVISION_VERSION_TUPLE_ENTRY)
+#undef DEFINE_REVISION_VERSION_TUPLE_ENTRY
+    };
+
+    return kRevisionVersions[std::to_underlying(revision)];
+}
+
+#undef FOR_EACH_REVISION
 
 namespace details
 {

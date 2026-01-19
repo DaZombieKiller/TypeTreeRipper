@@ -1,0 +1,7 @@
+[submodule "source/android/xhook"]
+	path = source/android/xhook
+	url = ../../weebl2000/xHook
+	branch = ndk28
+[submodule "source/android/dobby"]
+	path = source/android/dobby
+	url = ../../JingMatrix/Dobby
