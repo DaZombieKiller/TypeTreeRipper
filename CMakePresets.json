@@ -17,7 +17,7 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/artifacts/${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true
@@ -136,6 +136,38 @@
         {
             "name": "RelWithDebInfo",
             "configurePreset": "RelWithDebInfo"
+        },
+        {
+            "name": "DebugAndroidARM64",
+            "configurePreset": "DebugAndroidARM64"
+        },
+        {
+            "name": "RelWithDebInfoAndroidARM64",
+            "configurePreset": "RelWithDebInfoAndroidARM64"
+        },
+        {
+            "name": "DebugAndroidX8664",
+            "configurePreset": "DebugAndroidX8664"
+        },
+        {
+            "name": "RelWithDebInfoAndroidX8664",
+            "configurePreset": "RelWithDebInfoAndroidX8664"
+        },
+        {
+            "name": "DebugAndroidARM32",
+            "configurePreset": "DebugAndroidARM32"
+        },
+        {
+            "name": "RelWithDebInfoAndroidARM32",
+            "configurePreset": "RelWithDebInfoAndroidARM32"
+        },
+        {
+            "name": "DebugAndroidX86",
+            "configurePreset": "DebugAndroidX86"
+        },
+        {
+            "name": "RelWithDebInfoAndroidX86",
+            "configurePreset": "RelWithDebInfoAndroidX86"
         }
     ]
 }
