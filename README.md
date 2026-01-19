@@ -6,8 +6,12 @@ An experimental C++ alternative to [TypeTreeDumper](https://github.com/PersonFor
 
 Open the directory in Visual Studio and switch the solution explorer to the CMake Targets View.
 
-# Usage
+# Usage (Windows)
 
-This currently functions as a proxy for `version.dll` which will do a primitive type tree dump into `types.txt` and only supports non-development Unity player builds.
+The TypeTreeRipper module functions as a proxy for `version.dll` or `winhttp.dll`, but can also be injected at process start.
 
-Support for the editor and development builds requires defining revisions of relevant data structures in the code.
+When loaded, the module waits for the engine to initialize and then initiates a type tree dump. The data will be written to `release.ttbin` (when dumping from the editor, an `editor.ttbin` will also be produced) and then the process will terminate.
+
+At this time, only non-development Unity player builds are supported. Support for development builds and the editor requires additional definitions of `Object` and `TransferBase` in the source.
+
+The included `TypeTreeRipper.Converter` tool can be used to convert `.ttbin` files to `.tpk` or the legacy struct dump format.
