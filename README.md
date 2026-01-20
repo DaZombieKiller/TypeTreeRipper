@@ -1,6 +1,6 @@
 # TypeTreeRipper
 
-An experimental C++ alternative to [TypeTreeDumper](https://github.com/PersonForever/TypeTreeDumper) that does not require symbols.
+An experimental C++ alternative to [TypeTreeDumper](https://github.com/DaZombieKiller/TypeTreeDumper) that does not require symbols.
 
 # Building
 
