@@ -1,5 +1,3 @@
-using AssetRipper.Primitives;
-
 namespace TypeTreeRipper.BinaryFormat;
 
 public class DumpedTypeTreeHeader(BinaryReader reader)
@@ -12,6 +10,4 @@ public class DumpedTypeTreeHeader(BinaryReader reader)
 	public byte PatchRevision { get; } = reader.ReadByte();
 
 	public string Variant { get; } = reader.ReadLengthPrefixedString();
-
-	public UnityVersion Revision => new(MajorRevision, MinorRevision, PatchRevision);
 }

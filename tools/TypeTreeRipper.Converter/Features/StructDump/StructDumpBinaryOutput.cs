@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Text;
 using AssetRipper.HashAlgorithms;
+using AssetRipper.Primitives;
 using TypeTreeRipper.BinaryFormat;
 
 namespace TypeTreeRipper.Converter.Features.StructDump;
@@ -20,7 +21,10 @@ public static class StructDumpBinaryOutput
     {
         var typesByTypeId = binary.TypeTrees.ToDictionary(x => x.RTTI.PersistentTypeId);
 
-        writer.WriteNullTerminatedString(binary.Header.Revision.ToString());
+        var revision = new UnityVersion(binary.Header.MajorRevision, binary.Header.MinorRevision,
+            binary.Header.PatchRevision);
+
+        writer.WriteNullTerminatedString(revision.ToString());
 
         writer.Write((byte)7); // RuntimePlatform.WindowsEditor
         writer.Write((byte)1); // HasTypeTrees
