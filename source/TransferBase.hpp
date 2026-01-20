@@ -6,11 +6,17 @@ template<Revision R, Variant V>
 class TransferBase;
 
 DECLARE_REVISION(TransferBase, Revision::V5_0_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V5_0_0, Variant::Editor);
 DECLARE_REVISION(TransferBase, Revision::V2019_1_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V2019_1_0, Variant::Editor);
 DECLARE_REVISION(TransferBase, Revision::V2019_3_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V2019_3_0, Variant::Editor);
 DECLARE_REVISION(TransferBase, Revision::V2019_4_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V2019_4_0, Variant::Editor);
 DECLARE_REVISION(TransferBase, Revision::V2021_1_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V2021_1_0, Variant::Editor);
 DECLARE_REVISION(TransferBase, Revision::V2022_3_0);
+DECLARE_REVISION_VARIANT(TransferBase, Revision::V2022_3_0, Variant::Editor);
 
 //
 // 4.x
@@ -36,6 +42,16 @@ protected:
     MemLabelId<R, V> m_MemLabel;
 };
 
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V5_0_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    MemLabelId<R, Variant::Editor> m_MemLabel;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
+};
+
 //
 // 2019.1
 //
@@ -49,6 +65,17 @@ protected:
     void *m_ExtraDataForSerializingManagedReferences = nullptr;
 };
 
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V2019_1_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    MemLabelId<R, Variant::Editor> m_MemLabel;
+    void *m_ExtraDataForSerializingManagedReferences = nullptr;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
+};
+
 //
 // 2019.3
 //
@@ -60,6 +87,18 @@ protected:
     void *m_UserData = nullptr;
     MemLabelId<R, V> m_MemLabel;
     void *m_ExtraDataForSerializingManagedReferences = nullptr;
+    bool m_MissingManagedTypes = false;
+};
+
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V2019_3_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    MemLabelId<R, Variant::Editor> m_MemLabel;
+    void *m_ExtraDataForSerializingManagedReferences = nullptr;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
     bool m_MissingManagedTypes = false;
 };
 
@@ -77,6 +116,18 @@ protected:
     bool m_MissingManagedTypes = false;
 };
 
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V2019_4_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    void *m_ExtraDataForSerializingManagedReferences = nullptr;
+    void *m_ReferenceFromIDCache = nullptr;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
+    bool m_MissingManagedTypes = false;
+};
+
 //
 // 2021.1
 //
@@ -88,6 +139,18 @@ protected:
     void *m_UserData = nullptr;
     void *m_ManagedReferencesTransferState = nullptr;
     void *m_GetManagedReferencesRegistry = nullptr;
+    bool m_MissingManagedTypes = false;
+};
+
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V2021_1_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    void *m_ManagedReferencesTransferState = nullptr;
+    void *m_GetManagedReferencesRegistry = nullptr;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
     bool m_MissingManagedTypes = false;
 };
 
@@ -104,5 +167,19 @@ protected:
     void *m_GetManagedReferencesRegistry = nullptr;
     void *m_CustomLSOIResolver = nullptr;
     char const *m_ResourceImagePathPrefix = nullptr;
+    bool m_MissingManagedTypes = false;
+};
+
+DEFINE_REVISION_VARIANT(class, TransferBase, Revision::V2022_3_0, Variant::Editor)
+{
+protected:
+    TransferInstructionFlags<R, Variant::Editor> m_Flags = {};
+    void *m_UserData = nullptr;
+    void *m_ManagedReferencesTransferState = nullptr;
+    void *m_GetManagedReferencesRegistry = nullptr;
+    void *m_CustomLSOIResolver = nullptr;
+    char const *m_ResourceImagePathPrefix = nullptr;
+    void const *m_BuildUsageTag = nullptr;
+    void const *m_GlobalBuildData = nullptr;
     bool m_MissingManagedTypes = false;
 };
