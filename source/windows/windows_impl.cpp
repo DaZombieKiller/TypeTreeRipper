@@ -216,7 +216,8 @@ namespace
         const auto variant = DetectVariant();
 
         RunDumper<WindowsDumper>(revision, variant);
-        ExitProcess(0);
+        TerminateProcess(GetCurrentProcess(), 0);
+        return 0;
     }
 }
 
