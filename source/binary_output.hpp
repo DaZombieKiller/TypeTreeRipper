@@ -412,7 +412,7 @@ class DumpedTypeTreeWriter
 #undef IF_HAS_ENUM_FLAG
 
 public:
-    void Add(const RTTI* rtti, const TypeTree& tree, const TransferInstructionFlags& flags, char const* commonStringBuffer)
+    void Add(const RTTI* rtti, const TypeTree& tree, const TransferInstructionFlags& flags, char const* commonStringBuffer, void* object)
     {
         DumpedTypeTree dumpedTree{};
 
@@ -420,7 +420,7 @@ public:
 
         ConvertTransferInstructionFlags(flags, dumpedTree.TransferFlags);
 
-        if (!rtti->isAbstract && rtti->factory)
+        if (!rtti->isAbstract && rtti->factory && object)
         {
             const auto stringBuffer = tree.StringsBuffer();
             const auto nodes = tree.Nodes();

@@ -597,16 +597,23 @@ public:
     virtual void VirtualRedirectTransfer(class SafeBinaryRead &) = 0;
 };
 
-DEFINE_REVISION_VARIANT(class, Object, Revision::V2022_2_0, Variant::Editor)
+DEFINE_REVISION_VARIANT(class, Object, Revision::V2022_3_0, Variant::Editor)
 {
     using RTTI = ::RTTI<R, Variant::Editor>;
     using GenerateTypeTreeTransfer = ::GenerateTypeTreeTransfer<R, Variant::Editor>;
 public:
     virtual ~Object() = 0;
+    virtual void SetIsDone(bool) = 0;
+    virtual bool IsDone() = 0;
+    virtual void SetCompleted(bool) = 0;
+    virtual bool IsCompleted() = 0;
+    virtual void* GetOrCreate_THX_Proxy() = 0;
+    virtual void Create_THX_Proxy() = 0;
     virtual void MainThreadCleanup() = 0;
     virtual void AwakeFromLoad(AwakeFromLoadMode) = 0;
     virtual void AwakeFromLoadThreaded() = 0;
     virtual void CheckConsistency() = 0;
+    virtual void SetObjectReadyForUpdate() = 0;
     virtual void Reset() = 0;
     virtual void SmartReset() = 0;
     virtual bool IsAScriptedObject() = 0;

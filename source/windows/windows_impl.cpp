@@ -17,7 +17,10 @@ namespace
         for (const auto &module : {
             L"UnityPlayer.dll",
             L"Unity.dll",
-            L"Unity.exe"
+            L"Unity.exe",
+            L"TuanjiePlayer.dll",
+            L"Tuanjie.dll",
+            L"Tuanjie.exe"
             })
         {
             const auto hModule = GetModuleHandleW(module);
@@ -166,14 +169,14 @@ namespace
         const auto unityModuleName = std::filesystem::path(unityModuleFilepath.get()).filename().string();
 
         // UnityPlayer.dll is either Runtime or RuntimeDev
-        if (unityModuleName == "UnityPlayer.dll")
+        if (unityModuleName == "UnityPlayer.dll" || unityModuleName == "TuanjiePlayer.dll")
         {
             return Variant::Runtime;
         }
         
         // Unity.dll is always the editor
         // (Unity.exe is checked in the executable check)
-        if (unityModuleName == "Unity.dll")
+        if (unityModuleName == "Unity.dll" || unityModuleName == "Tuanjie.dll")
         {
             return Variant::Editor;
         }

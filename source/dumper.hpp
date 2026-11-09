@@ -106,6 +106,9 @@ class Dumper : public IDumper
             if ((x.Protection & ExecutableSection::kSectionProtectionRead) == 0)
                 return false;
 
+            if (x.Data.size() < sizeof(RuntimeTypeArray))
+                return false;
+
             return true;
         }))
         {
@@ -145,6 +148,7 @@ class Dumper : public IDumper
             }
         }
 
+        PlatformImpl.DebugLog("Failed to find common string buffer");
         return nullptr;
     }
 public:
@@ -169,14 +173,19 @@ public:
                     TypeTreeShareableData data(label);
                     TypeTree tree(&data, label);
 
+                    Object * object = nullptr;
                     if (!pRTTI->isAbstract && pRTTI->factory)
                     {
-                        Object *object = pRTTI->factory(label, kCreateObjectDefault);
-                        GenerateTypeTreeTransfer transfer(tree, flags, object, pRTTI->size);
-                        object->VirtualRedirectTransfer(transfer);
+                        object = pRTTI->factory(label, kCreateObjectDefault);
+                        // "THX_Proxy" (what is this) can't be created, so it returns nothing.
+                        // but it also is not abstract, curious!
+                        if (object) {
+                            GenerateTypeTreeTransfer transfer(&tree, flags, object, pRTTI->size);
+                            object->VirtualRedirectTransfer(transfer);
+                        }
                     }
 
-                    Writer.Add(pRTTI, tree, flags, pTable);
+                    Writer.Add(pRTTI, tree, flags, pTable, object);
                 }
 
                 PlatformImpl.DebugLog("Dumped types, now writing to file");
